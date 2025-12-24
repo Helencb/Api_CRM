@@ -27,20 +27,20 @@ public class ClientServiceTest {
         clientRepository.deleteAll();
     }
 
-//    @Test
-//    void deveSalvarClienteComSucesso() {
-//        ClientRequestDTO dto = new ClientRequestDTO(
-//                "Jonatas Batista",
-//                "JonatasBatista@Gmail.com",
-//                "18999638858"
-//        );
-//        ClientResponseDTO responseDTO = clientService.save(dto);
-//
-//    Assertions.assertNotNull(responseDTO.getId());
-//    Assertions.assertEquals(dto.getNome(), responseDTO.getNome());
-//    Assertions.assertEquals(dto.getEmail(), responseDTO.getEmail());
-//    Assertions.assertEquals(dto.getTelefone(), responseDTO.getTelefone());
-//    }
+    @Test
+    void deveSalvarClienteComSucesso() {
+        ClientRequestDTO dto = new ClientRequestDTO(
+                "Jonatas Batista",
+                "JonatasBatista@Gmail.com",
+                "18999638858"
+        );
+        ClientResponseDTO responseDTO = clientService.save(dto);
+
+    Assertions.assertNotNull(responseDTO.getId());
+    Assertions.assertEquals(dto.getNome(), responseDTO.getNome());
+    Assertions.assertEquals(dto.getEmail(), responseDTO.getEmail());
+    Assertions.assertEquals(dto.getTelefone(), responseDTO.getTelefone());
+    }
 
     @Test
     void deveListarTodosClientes() {
