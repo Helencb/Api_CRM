@@ -1,4 +1,4 @@
-package com.helen.api_crm.security;
+package com.helen.api_crm.security.jwt;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;

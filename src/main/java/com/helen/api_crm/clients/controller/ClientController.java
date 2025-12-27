@@ -1,14 +1,12 @@
-package com.helen.api_crm.controller;
+package com.helen.api_crm.clients.controller;
 
-import com.helen.api_crm.dto.ClientRequestDTO;
-import com.helen.api_crm.dto.ClientResponseDTO;
-import com.helen.api_crm.service.ClientService;
+import com.helen.api_crm.clients.service.ClientService;
+import com.helen.api_crm.clients.dto.ClientRequestDTO;
+import com.helen.api_crm.clients.dto.ClientResponseDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/clientes")

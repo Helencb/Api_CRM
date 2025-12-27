@@ -1,9 +1,10 @@
 package com.helen.api_crm.service;
 
-import com.helen.api_crm.dto.ClientRequestDTO;
-import com.helen.api_crm.dto.ClientResponseDTO;
+import com.helen.api_crm.clients.service.ClientService;
+import com.helen.api_crm.clients.dto.ClientRequestDTO;
+import com.helen.api_crm.clients.dto.ClientResponseDTO;
 import com.helen.api_crm.exception.ClientNotFoundException;
-import com.helen.api_crm.repository.ClientRepository;
+import com.helen.api_crm.clients.repository.ClientRepository;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;

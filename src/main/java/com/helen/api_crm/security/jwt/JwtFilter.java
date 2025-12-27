@@ -1,4 +1,4 @@
-package com.helen.api_crm.security;
+package com.helen.api_crm.security.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

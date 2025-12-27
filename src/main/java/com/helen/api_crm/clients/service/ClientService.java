@@ -1,20 +1,18 @@
-package com.helen.api_crm.service;
+package com.helen.api_crm.clients.service;
 
-import com.helen.api_crm.dto.ClientRequestDTO;
-import com.helen.api_crm.dto.ClientResponseDTO;
-import com.helen.api_crm.entity.Client;
+import com.helen.api_crm.clients.dto.ClientRequestDTO;
+import com.helen.api_crm.clients.dto.ClientResponseDTO;
+import com.helen.api_crm.clients.model.Client;
+import com.helen.api_crm.clients.repository.ClientRepository;
 import com.helen.api_crm.exception.ClientNotFoundException;
-import com.helen.api_crm.repository.ClientRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-@Component
+
 @Service
 @RequiredArgsConstructor
 public class ClientService {

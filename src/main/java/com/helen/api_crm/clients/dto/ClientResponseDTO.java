@@ -1,25 +1,20 @@
-package com.helen.api_crm.entity;
+package com.helen.api_crm.clients.dto;
 
-import jakarta.persistence.*;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-
-@Entity
-@Table(name = "clientes")
+@Transactional
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Client {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class ClientResponseDTO {
     private Long id;
-
     private String nome;
     private String email;
     private String telefone;
+
 }

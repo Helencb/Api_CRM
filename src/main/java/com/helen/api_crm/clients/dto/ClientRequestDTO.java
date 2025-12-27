@@ -1,4 +1,4 @@
-package com.helen.api_crm.dto;
+package com.helen.api_crm.clients.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

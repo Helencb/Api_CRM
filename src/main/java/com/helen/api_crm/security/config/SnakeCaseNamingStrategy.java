@@ -1,4 +1,4 @@
-package com.helen.api_crm.config;
+package com.helen.api_crm.security.config;
 
 import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.boot.model.naming.PhysicalNamingStrategy;

@@ -1,6 +1,6 @@
-package com.helen.api_crm.repository;
+package com.helen.api_crm.clients.repository;
 
-import com.helen.api_crm.entity.Client;
+import com.helen.api_crm.clients.model.Client;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
