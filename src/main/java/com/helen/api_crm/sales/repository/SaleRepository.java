@@ -2,10 +2,13 @@ package com.helen.api_crm.sales.repository;
 
 import com.helen.api_crm.sales.model.Sale;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+@Repository
 public interface SaleRepository extends JpaRepository<Sale, Long> {
-
-    List<Sale> findByClient(Long client);
+    List<Sale> findByClientId(Long clientId);
+    List<Sale> findBySellerId(Long sellerId);
+    List<Sale> findByCompleted(boolean completed);
 }

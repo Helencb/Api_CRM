@@ -5,6 +5,7 @@ import com.helen.api_crm.seller.model.Seller;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Setter
@@ -19,16 +20,39 @@ public class Sale {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String nome;
+    // Nome da venda ou do produto/serviço vendido
+    @Column(nullable = false)
+    private String name;
 
+    // Valor monetário da venda
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal value;
+
+    // Indica se a venda foi concluída
+    @Column(nullable = false)
+    private boolean completed;
+
+    // Motivo da falha (caso a venda não tenha sido concluída)
+    private String failureReason;
+
+    // Muitas vendas podem pertencer a um cliente
     @ManyToOne
-    @JoinColumn(name = "client_id")
+    @JoinColumn(name = "client_Id", nullable = false)
     private Client client;
 
+    // Muitas vendas podem pertencer a um vendedor
     @ManyToOne
+    @JoinColumn(name = "seller_Id", nullable = false)
     private Seller seller;
 
-    private Double amount;
+    // Quantidade vendida (ex: número de itens)
+    @Column(nullable = false)
+    private Integer amount;
+
+    // Descrição adicional da venda
     private String description;
+
+    // Data e hora da venda
+    @Column(nullable = false)
     private LocalDateTime date;
 }

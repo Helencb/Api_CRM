@@ -6,30 +6,32 @@ import com.helen.api_crm.clients.dto.ClientResponseDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("/clientes")
+@RequestMapping("/api/clientes")
 @RequiredArgsConstructor
-public class ClientController{
+public class ClientController {
 
     private final ClientService clientService;
 
     @PostMapping
-    public ClientResponseDTO create(@RequestBody @Valid ClientRequestDTO dto){
-        return clientService.save(dto);
+    public ResponseEntity<ClientResponseDTO> createClient(@RequestBody ClientRequestDTO dto) {
+        ClientResponseDTO response = clientService.createClient(dto);
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/paginado")
-    public Page<ClientResponseDTO> findAllPaginated(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size,
-            @RequestParam(defaultValue = "nome") String sortBy){
-        return clientService.findAllPaginated(page, size, sortBy);
+    @GetMapping
+    public ResponseEntity<List<ClientResponseDTO>> getAllClients() {
+        return ResponseEntity.ok(clientService.getAllClients());
     }
 
-    @GetMapping("/{id}")
-    public ClientResponseDTO search(@PathVariable Long id){
-        return clientService.findById(id);
+    @GetMapping("/{id")
+    public ResponseEntity<ClientResponseDTO> getClientById(@PathVariable Long id) {
+        return ResponseEntity.ok(clientService.getClientById(id));
     }
+
 }

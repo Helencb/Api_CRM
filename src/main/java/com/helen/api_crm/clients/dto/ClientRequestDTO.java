@@ -1,6 +1,5 @@
 package com.helen.api_crm.clients.dto;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,13 +12,12 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ClientRequestDTO {
 
-    @NotBlank(message = "Nome é obrigatório")
-    private String nome;
+    @NotBlank(message = "Name is mandatory")
+    private String name;
 
-    @Email(message = "Email é obrigatório")
-            @NotBlank(message = "Email é obrigatório")
+    @NotBlank(message = "Email is mandatory")
     private String email;
 
-    @NotBlank(message = "Telefone é obrigatório")
-    private String telefone;
+    @NotBlank(message = "Telephone is mandatory")
+    private String phone;
 }

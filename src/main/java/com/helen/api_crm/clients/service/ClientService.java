@@ -2,60 +2,49 @@ package com.helen.api_crm.clients.service;
 
 import com.helen.api_crm.clients.dto.ClientRequestDTO;
 import com.helen.api_crm.clients.dto.ClientResponseDTO;
+import com.helen.api_crm.clients.mapper.ClientMapper;
 import com.helen.api_crm.clients.model.Client;
 import com.helen.api_crm.clients.repository.ClientRepository;
 import com.helen.api_crm.exception.ClientNotFoundException;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
-@RequiredArgsConstructor
 public class ClientService {
 
     private final ClientRepository clientRepository;
 
-    public ClientResponseDTO save(ClientRequestDTO dto) {
+    private final ClientMapper clientMapper;
 
-        Client client = new Client();
-        client.setNome(dto.getNome());
-        client.setEmail(dto.getEmail());
-        client.setTelefone(dto.getTelefone());
+    public ClientService(ClientRepository clientRepository, ClientMapper clientMapper) {
+        this.clientRepository = clientRepository;
+        this.clientMapper = clientMapper;
+    }
 
+    //Criar cliente
+    public ClientResponseDTO createClient(ClientRequestDTO dto) {
+        Client client = clientMapper.toEntity(dto);
         Client savedClient = clientRepository.save(client);
-
-        return new ClientResponseDTO(
-                savedClient.getId(),
-                savedClient.getNome(),
-                savedClient.getEmail(),
-                savedClient.getTelefone()
-        );
+        return clientMapper.toDTO(savedClient);
     }
 
-    public ClientResponseDTO findById(Long id) {
+    // Listar todos clientes
+    public List<ClientResponseDTO> getAllClients() {
+        return clientRepository.findAll()
+                .stream()
+                .map(clientMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    // Buscar cliente por ID
+    public ClientResponseDTO getClientById(Long id) {
         Client client = clientRepository.findById(id)
-                .orElseThrow(() -> new ClientNotFoundException("Cliente não encontrado"));
+                .orElseThrow(() -> new ClientNotFoundException("Customer not found"));
 
-        return new ClientResponseDTO(
-                client.getId(),
-                client.getNome(),
-                client.getEmail(),
-                client.getTelefone()
-        );
-    }
-
-    public Page<ClientResponseDTO> findAllPaginated(int page, int size, String sortBy) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
-        return clientRepository.findAll(pageable)
-                .map(client -> new ClientResponseDTO(
-                client.getId(),
-                client.getNome(),
-                client.getEmail(),
-                client.getTelefone()
-        ));
+        return clientMapper.toDTO(client);
     }
 }
+

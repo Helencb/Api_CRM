@@ -11,21 +11,25 @@ import java.util.List;
 
 
 @Entity
-@Table(name = "clients")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "clients")
 public class Client {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String nome;
+    @Column(nullable = false)
+    private String name;
+
+    @Column(unique = true)
     private String email;
-    private String telefone;
+
+    private String phone;
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
-    private List<Sale> sales = new ArrayList<Sale>();
+    private List<Sale> sales;
 }
