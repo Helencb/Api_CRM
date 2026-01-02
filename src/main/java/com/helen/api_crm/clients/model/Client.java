@@ -1,12 +1,11 @@
 package com.helen.api_crm.clients.model;
 
-import com.helen.api_crm.sales.model.Sale;
+import com.helen.api_crm.sale.model.Sale;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.*;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
 import java.util.List;
 
 

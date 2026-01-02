@@ -1,9 +1,9 @@
-package com.helen.api_crm.sales.mapper;
+package com.helen.api_crm.sale.mapper;
 
 import com.helen.api_crm.clients.model.Client;
-import com.helen.api_crm.sales.dto.SaleRequestDTO;
-import com.helen.api_crm.sales.dto.SaleResponseDTO;
-import com.helen.api_crm.sales.model.Sale;
+import com.helen.api_crm.sale.dto.SaleRequestDTO;
+import com.helen.api_crm.sale.dto.SaleResponseDTO;
+import com.helen.api_crm.sale.model.Sale;
 import com.helen.api_crm.seller.model.Seller;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;

@@ -1,4 +1,4 @@
-package com.helen.api_crm.sales.dto;
+package com.helen.api_crm.sale.dto;
 
 
 import lombok.*;

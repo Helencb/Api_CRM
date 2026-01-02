@@ -1,6 +1,6 @@
-package com.helen.api_crm.security.Repository;
+package com.helen.api_crm.auth.Repository;
 
-import com.helen.api_crm.security.model.User;
+import com.helen.api_crm.auth.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

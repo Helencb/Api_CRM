@@ -1,12 +1,14 @@
-package com.helen.api_crm.sales.service;
+package com.helen.api_crm.sale.service;
 
 import com.helen.api_crm.clients.model.Client;
 import com.helen.api_crm.clients.repository.ClientRepository;
-import com.helen.api_crm.sales.mapper.SaleMapper;
-import com.helen.api_crm.sales.dto.SaleRequestDTO;
-import com.helen.api_crm.sales.dto.SaleResponseDTO;
-import com.helen.api_crm.sales.model.Sale;
-import com.helen.api_crm.sales.repository.SaleRepository;
+import com.helen.api_crm.exception.BusinessException;
+import com.helen.api_crm.exception.ResourceNotFoundException;
+import com.helen.api_crm.sale.mapper.SaleMapper;
+import com.helen.api_crm.sale.dto.SaleRequestDTO;
+import com.helen.api_crm.sale.dto.SaleResponseDTO;
+import com.helen.api_crm.sale.model.Sale;
+import com.helen.api_crm.sale.repository.SaleRepository;
 import com.helen.api_crm.seller.model.Seller;
 import com.helen.api_crm.seller.repository.SellerRepository;
 import org.springframework.stereotype.Service;
@@ -37,11 +39,11 @@ public class SaleService {
 
         // Buscar Cliente
         Client client = clientRepository.findById(dto.getClientId())
-                .orElseThrow(() -> new RuntimeException("Client not found with id: " + dto.getClientId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Client not found with id: " + dto.getClientId()));
 
         //Buscar Vendedor
         Seller seller = sellerRepository.findById(dto.getSellerId())
-                .orElseThrow(() -> new RuntimeException("Seller not found with id: " + dto.getSellerId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Seller not found with id: " + dto.getSellerId()));
 
         //Converter DTO -> Entity usando Mapper
         Sale sale = saleMapper.toEntiy(dto, client, seller);
@@ -64,7 +66,7 @@ public class SaleService {
     // Buscar venda por ID
     public SaleResponseDTO getSaleById(Long id) {
         Sale sale = saleRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Sale not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Sale not found with id: " + id));
         return saleMapper.toDTO(sale);
     }
 
@@ -72,14 +74,14 @@ public class SaleService {
     public SaleResponseDTO completeSale(Long id) {
 
         Sale sale = saleRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Sale not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Sale not found with id: " + id));
 
         if (sale.isCompleted()){
-            throw new RuntimeException("Sale is already completed");
+            throw new BusinessException("Sale is already completed");
         }
 
         if (sale.getFailureReason() != null) {
-            throw new RuntimeException("Sale failure reason: " + sale.getFailureReason());
+            throw new BusinessException("Sale failure reason: " + sale.getFailureReason());
         }
 
         sale.setCompleted(true);
@@ -92,13 +94,13 @@ public class SaleService {
     //Cancelar Venda
     public SaleResponseDTO cancelSale(Long id, String failureReason) {
         Sale sale = saleRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Sale not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Sale not found with id: " + id));
 
         if (sale.isCompleted()){
-            throw new RuntimeException("Sale is already completed");
+            throw new BusinessException("Sale is already completed");
         }
-        if (failureReason != null || failureReason.isBlank()) {
-            throw new RuntimeException("Sale failure reason: " + failureReason);
+        if (failureReason != null && failureReason.isBlank()) {
+            throw new BusinessException("Sale failure reason: " + failureReason);
         }
 
         sale.setFailureReason(failureReason);

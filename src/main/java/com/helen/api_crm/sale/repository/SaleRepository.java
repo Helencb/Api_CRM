@@ -1,6 +1,6 @@
-package com.helen.api_crm.sales.repository;
+package com.helen.api_crm.sale.repository;
 
-import com.helen.api_crm.sales.model.Sale;
+import com.helen.api_crm.sale.model.Sale;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,4 +1,4 @@
-package com.helen.api_crm.security.model;
+package com.helen.api_crm.auth.model;
 
 import com.helen.api_crm.common.enums.Role;
 import jakarta.persistence.*;

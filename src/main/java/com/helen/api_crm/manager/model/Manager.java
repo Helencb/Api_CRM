@@ -1,6 +1,6 @@
 package com.helen.api_crm.manager.model;
 
-import com.helen.api_crm.security.model.User;
+import com.helen.api_crm.auth.model.User;
 import jakarta.persistence.*;
 import lombok.*;
 

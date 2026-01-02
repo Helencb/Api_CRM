@@ -1,9 +1,9 @@
-package com.helen.api_crm.sales.controller;
+package com.helen.api_crm.sale.controller;
 
-import com.helen.api_crm.sales.dto.SaleCancelRequestDTO;
-import com.helen.api_crm.sales.service.SaleService;
-import com.helen.api_crm.sales.dto.SaleRequestDTO;
-import com.helen.api_crm.sales.dto.SaleResponseDTO;
+import com.helen.api_crm.sale.dto.SaleCancelRequestDTO;
+import com.helen.api_crm.sale.service.SaleService;
+import com.helen.api_crm.sale.dto.SaleRequestDTO;
+import com.helen.api_crm.sale.dto.SaleResponseDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

@@ -1,8 +1,8 @@
 package com.helen.api_crm.security.config;
 
 import com.helen.api_crm.common.enums.Role;
-import com.helen.api_crm.security.Repository.UserRepository;
-import com.helen.api_crm.security.model.User;
+import com.helen.api_crm.auth.Repository.UserRepository;
+import com.helen.api_crm.auth.model.User;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.crypto.password.PasswordEncoder;

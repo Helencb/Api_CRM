@@ -1,7 +1,7 @@
 package com.helen.api_crm.seller.model;
 
-import com.helen.api_crm.sales.model.Sale;
-import com.helen.api_crm.security.model.User;
+import com.helen.api_crm.sale.model.Sale;
+import com.helen.api_crm.auth.model.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;

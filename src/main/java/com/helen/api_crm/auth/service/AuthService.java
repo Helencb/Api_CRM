@@ -1,15 +1,15 @@
 package com.helen.api_crm.auth.service;
 
 
+import com.helen.api_crm.auth.Repository.UserRepository;
 import com.helen.api_crm.auth.dto.LoginRequestDTO;
 import com.helen.api_crm.auth.dto.LoginResponseDTO;
-import com.helen.api_crm.security.jwt.JwtService;
-import lombok.RequiredArgsConstructor;
+import com.helen.api_crm.auth.model.User;
+import com.helen.api_crm.exception.BusinessException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 public class AuthService {
 
     private final UserRepository userRepository;
@@ -26,13 +26,18 @@ public class AuthService {
 
     public LoginResponseDTO login(LoginRequestDTO dto) {
 
-        var user = userRepository.findByEmail(dto.getEmail())
-                .orElseThrow(() -> new RuntimeException("Login not found"));
+        User user = userRepository.findByEmail(dto.getEmail())
+                .orElseThrow(() -> new BusinessException("Login not found"));
 
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Passwords don't match");
+            throw new BusinessException("Passwords don't match");
         }
 
-        return jwtService.generateToken(user.getUsername());
+        String token = jwtService.generateToken(user);
+        LoginResponseDTO response = new LoginResponseDTO();
+        response.setToken(token);
+        response.setRole(user.getRole().name());
+
+        return response;
     }
 }

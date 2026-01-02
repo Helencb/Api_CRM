@@ -1,4 +1,4 @@
-package com.helen.api_crm.sales.model;
+package com.helen.api_crm.sale.model;
 
 import com.helen.api_crm.clients.model.Client;
 import com.helen.api_crm.seller.model.Seller;

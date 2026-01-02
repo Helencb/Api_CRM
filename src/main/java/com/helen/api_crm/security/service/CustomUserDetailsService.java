@@ -1,7 +1,7 @@
 package com.helen.api_crm.security.service;
 
-import com.helen.api_crm.security.Repository.UserRepository;
-import com.helen.api_crm.security.model.User;
+import com.helen.api_crm.auth.Repository.UserRepository;
+import com.helen.api_crm.auth.model.User;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

@@ -5,9 +5,8 @@ import com.helen.api_crm.manager.dto.ManagerRequestDTO;
 import com.helen.api_crm.manager.dto.ManagerResponseDTO;
 import com.helen.api_crm.manager.model.Manager;
 import com.helen.api_crm.manager.repository.ManagerRepository;
-import com.helen.api_crm.security.Repository.UserRepository;
-import com.helen.api_crm.security.model.User;
-import lombok.RequiredArgsConstructor;
+import com.helen.api_crm.auth.Repository.UserRepository;
+import com.helen.api_crm.auth.model.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
