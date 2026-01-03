@@ -4,17 +4,15 @@ import com.helen.api_crm.seller.dto.SellerRequestDTO;
 import com.helen.api_crm.seller.dto.SellerResponseDTO;
 import com.helen.api_crm.seller.model.Seller;
 import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
+import org.mapstruct.Mapping;
 
 
 @Mapper(componentModel = "spring")
 public interface SellerMapper {
 
-    SellerMapper INSTANCE = Mappers.getMapper(SellerMapper.class);
-
-    // RequestDTO -> Entity
+    @Mapping(target = "user", ignore = true)
     Seller toEntity(SellerRequestDTO dto);
 
-    //Entity -> ResponseDTO
+    @Mapping(target = "email", source = "user.email")
     SellerResponseDTO toDTO(Seller seller);
 }

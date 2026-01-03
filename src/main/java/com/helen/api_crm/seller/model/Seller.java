@@ -24,18 +24,14 @@ public class Seller {
     @Column(nullable = false)
     private String name;
 
-    @Column(unique = true, nullable = false)
-    private String email;
-
     private String phone;
 
     @OneToMany(mappedBy = "seller")
     private List<Sale> sales;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @OneToOne(optional = false)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
-
 
 
 }

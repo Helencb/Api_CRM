@@ -11,6 +11,7 @@ import com.helen.api_crm.sale.model.Sale;
 import com.helen.api_crm.sale.repository.SaleRepository;
 import com.helen.api_crm.seller.model.Seller;
 import com.helen.api_crm.seller.repository.SellerRepository;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 
@@ -67,6 +68,21 @@ public class SaleService {
     public SaleResponseDTO getSaleById(Long id) {
         Sale sale = saleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Sale not found with id: " + id));
+
+        String emailLogado = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+        boolean isManager = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getAuthorities()
+                .stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_MANAGER"));
+        if (!isManager && !sale.getSeller().getEmail().equals(emailLogado)) {
+            throw new BusinessException("Invalid email or password");
+        }
+
         return saleMapper.toDTO(sale);
     }
 

@@ -1,65 +1,64 @@
 package com.helen.api_crm.manager.service;
 
 import com.helen.api_crm.common.enums.Role;
+import com.helen.api_crm.exception.BusinessException;
 import com.helen.api_crm.manager.dto.ManagerRequestDTO;
 import com.helen.api_crm.manager.dto.ManagerResponseDTO;
+import com.helen.api_crm.manager.mapper.ManagerMapper;
 import com.helen.api_crm.manager.model.Manager;
 import com.helen.api_crm.manager.repository.ManagerRepository;
-import com.helen.api_crm.auth.Repository.UserRepository;
-import com.helen.api_crm.auth.model.User;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class ManagerService {
 
     private final ManagerRepository managerRepository;
-    private final UserRepository userRepository;
+    private final ManagerMapper mapper;
     private final PasswordEncoder passwordEncoder;
 
     public ManagerService(ManagerRepository managerRepository,
-                          UserRepository userRepository,
+                          ManagerMapper mapper,
                           PasswordEncoder passwordEncoder) {
         this.managerRepository = managerRepository;
-        this.userRepository = userRepository;
+        this.mapper = mapper;
         this.passwordEncoder = passwordEncoder;
     }
 
     public ManagerResponseDTO create(ManagerRequestDTO dto) {
-        //Validações básicas
-        if (dto.getEmail() == null || dto.getEmail().isBlank()) {
-            throw new RuntimeException("Email is required");
+
+        if(managerRepository.findByEmail(dto.email()).isPresent()) {
+            throw new BusinessException("Email already registered");
         }
-
-        if (dto.getPassword() == null || dto.getPassword().length() < 6) {
-            throw new RuntimeException("Password must be at least 6 characters long");
-        }
-
-        //Verifica se o email já está em uso
-        if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already in use");
-        }
-
-        //Cria o User (login)
-        User user = new User();
-        user.setEmail(dto.getEmail());
-        user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        user.setRole(Role.ROLE_MANAGER);
-
-        userRepository.save(user);
 
         //Cria o Manager
-        Manager manager = new Manager();
-        manager.setNome(dto.getNome());
-        manager.setUser(user);
+        Manager manager = mapper.toEntity(dto);
+        manager.setPassword(passwordEncoder.encode(dto.password()));
+        manager.setRole(Role.MANAGER);
+        return mapper.toDTO(managerRepository.save(manager));
+    }
 
-        Manager savedManager = managerRepository.save(manager);
+    public List<ManagerResponseDTO> findAll() {
+        return managerRepository.findAll()
+                .stream()
+                .map(mapper::toDTO)
+                .toList();
+    }
 
-        //Retorna o DTO de resposta
-        return new ManagerResponseDTO(
-            savedManager.getId(),
-            savedManager.getNome(),
-            savedManager.getUser().getEmail()
-        );
+    public ManagerResponseDTO findById(Long id) {
+        Manager manager = managerRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Manager not found"));
+        return mapper.toDTO(manager);
+    }
+
+    public void deactivate(Long id) {
+        Manager manager = managerRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Manager not found"));
+
+        manager.setActive(false);
+        managerRepository.save(manager);
     }
 }

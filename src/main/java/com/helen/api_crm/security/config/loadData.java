@@ -27,7 +27,7 @@ public class loadData {
             User manager = new User();
             manager.setEmail("admin@crm.com");
             manager.setPassword(passwordEncoder.encode("admin123"));
-            manager.setRole(Role.ROLE_MANAGER);
+            manager.setRole(Role.MANAGER);
 
             userRepository.save(manager);
         }

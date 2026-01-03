@@ -24,6 +24,7 @@ public class AuthService {
         this.jwtService = jwtService;
     }
 
+    // Busca usuário pelo email
     public LoginResponseDTO login(LoginRequestDTO dto) {
 
         User user = userRepository.findByEmail(dto.getEmail())
@@ -33,7 +34,10 @@ public class AuthService {
             throw new BusinessException("Passwords don't match");
         }
 
+        // Gera token
         String token = jwtService.generateToken(user);
+
+        // Cria DTP de Resposta
         LoginResponseDTO response = new LoginResponseDTO();
         response.setToken(token);
         response.setRole(user.getRole().name());

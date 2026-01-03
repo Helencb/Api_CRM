@@ -4,21 +4,30 @@ import com.helen.api_crm.auth.model.User;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Table(name = "managers")
-@Entity
 @Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table(name = "managers")
 public class Manager {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String nome;
+    @Column(nullable = false)
+    private String name;
 
-    @OneToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @OneToOne(optional = false)
+    @JoinColumn(
+            name = "user_id",
+            nullable = false,
+            unique = true
+    )
     private User user;
+
+    @Column(nullable = false)
+    private Boolean active = true;
+
 }
