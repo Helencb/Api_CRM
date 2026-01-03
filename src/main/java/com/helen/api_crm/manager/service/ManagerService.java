@@ -1,5 +1,7 @@
 package com.helen.api_crm.manager.service;
 
+import com.helen.api_crm.auth.Repository.UserRepository;
+import com.helen.api_crm.auth.model.User;
 import com.helen.api_crm.common.enums.Role;
 import com.helen.api_crm.exception.BusinessException;
 import com.helen.api_crm.manager.dto.ManagerRequestDTO;
@@ -19,13 +21,17 @@ public class ManagerService {
     private final ManagerRepository managerRepository;
     private final ManagerMapper mapper;
     private final PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final ManagerMapper managerMapper;
 
     public ManagerService(ManagerRepository managerRepository,
                           ManagerMapper mapper,
-                          PasswordEncoder passwordEncoder) {
+                          PasswordEncoder passwordEncoder, UserRepository userRepository, ManagerMapper managerMapper) {
         this.managerRepository = managerRepository;
         this.mapper = mapper;
         this.passwordEncoder = passwordEncoder;
+        this.userRepository = userRepository;
+        this.managerMapper = managerMapper;
     }
 
     public ManagerResponseDTO create(ManagerRequestDTO dto) {
@@ -34,11 +40,21 @@ public class ManagerService {
             throw new BusinessException("Email already registered");
         }
 
-        //Cria o Manager
+        User user = new User();
+        user.setEmail(dto.email());
+        user.setPassword(passwordEncoder.encode(dto.password()));
+        user.setRole(Role.MANAGER);
+        user.setActive(true);
+
+        userRepository.save(user);
+
+        //Cria Manager e associar User
         Manager manager = mapper.toEntity(dto);
-        manager.setPassword(passwordEncoder.encode(dto.password()));
-        manager.setRole(Role.MANAGER);
-        return mapper.toDTO(managerRepository.save(manager));
+        manager.setUser(user);
+
+        Manager savedManager = managerRepository.save(manager);
+
+        return managerMapper.toDTO(savedManager);
     }
 
     public List<ManagerResponseDTO> findAll() {
@@ -58,7 +74,8 @@ public class ManagerService {
         Manager manager = managerRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Manager not found"));
 
-        manager.setActive(false);
-        managerRepository.save(manager);
+        User user = manager.getUser();
+        user.setActive(false);
+        userRepository.save(user);
     }
 }

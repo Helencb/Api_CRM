@@ -26,8 +26,4 @@ public class Manager {
             unique = true
     )
     private User user;
-
-    @Column(nullable = false)
-    private Boolean active = true;
-
 }
