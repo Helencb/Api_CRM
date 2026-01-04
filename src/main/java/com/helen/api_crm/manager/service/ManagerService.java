@@ -35,11 +35,6 @@ public class ManagerService {
     }
 
     public ManagerResponseDTO create(ManagerRequestDTO dto) {
-
-        if(managerRepository.findByEmail(dto.email()).isPresent()) {
-            throw new BusinessException("Email already registered");
-        }
-
         User user = new User();
         user.setEmail(dto.email());
         user.setPassword(passwordEncoder.encode(dto.password()));

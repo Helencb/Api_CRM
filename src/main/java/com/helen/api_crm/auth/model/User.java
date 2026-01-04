@@ -4,7 +4,10 @@ import com.helen.api_crm.common.enums.Role;
 import com.helen.api_crm.manager.model.Manager;
 import com.helen.api_crm.seller.model.Seller;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Setter
 @Getter

@@ -2,7 +2,10 @@ package com.helen.api_crm.manager.model;
 
 import com.helen.api_crm.auth.model.User;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Setter
 @Getter
@@ -23,7 +26,6 @@ public class Manager {
     @JoinColumn(
             name = "user_id",
             nullable = false,
-            unique = true
-    )
+            unique = true)
     private User user;
 }

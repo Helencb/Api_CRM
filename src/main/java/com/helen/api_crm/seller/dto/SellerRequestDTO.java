@@ -1,23 +1,16 @@
 package com.helen.api_crm.seller.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.*;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class SellerRequestDTO {
-
+public record SellerRequestDTO (
     @NotBlank(message = "Nome é obrigatório")
-    private String name;
+    String name,
 
     @NotBlank(message = "Email é obrigatório")
-    private String email;
+    String email,
 
     @NotBlank(message = "Senha é obrigatória")
-    private String password;
+    String password,
 
-    private String phone;
-
-}
+    String phone)
+{}

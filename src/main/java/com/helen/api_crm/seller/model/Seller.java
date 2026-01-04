@@ -4,8 +4,9 @@ import com.helen.api_crm.sale.model.Sale;
 import com.helen.api_crm.auth.model.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.*;
+import lombok.Setter;
 
 import java.util.List;
 
