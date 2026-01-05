@@ -26,7 +26,7 @@ public class Sale {
 
     // Valor monetário da venda
     @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal value;
+    private BigDecimal totalValue;
 
     // Indica se a venda foi concluída
     @Column(nullable = false)

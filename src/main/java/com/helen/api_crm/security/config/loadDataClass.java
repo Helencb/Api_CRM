@@ -2,32 +2,29 @@ package com.helen.api_crm.security.config;
 
 import com.helen.api_crm.common.enums.Role;
 import com.helen.api_crm.auth.Repository.UserRepository;
-import com.helen.api_crm.auth.model.User;
+import com.helen.api_crm.manager.model.Manager;
+import lombok.AllArgsConstructor;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
-public class loadData {
+@AllArgsConstructor
+public class loadDataClass {
 
     private UserRepository userRepository;
     private PasswordEncoder passwordEncoder;
-
-    public void LoadData(UserRepository userRepository,
-                         PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
 
     @EventListener(ApplicationReadyEvent.class)
     public void loadData() {
         if (userRepository.count() == 0) {
 
-            User manager = new User();
+            Manager manager = new Manager();
             manager.setEmail("admin@crm.com");
             manager.setPassword(passwordEncoder.encode("admin123"));
             manager.setRole(Role.MANAGER);
+            manager.setName("Admin");
 
             userRepository.save(manager);
         }

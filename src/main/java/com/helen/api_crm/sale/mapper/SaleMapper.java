@@ -21,7 +21,7 @@ public interface SaleMapper {
     @Mapping(target = "id", ignore = true) // ID é gerado pelo banco
     @Mapping(target = "name", source = "dto.name") // Resolve ambiguidade (usa o nome do DTO, não do cliente/vendedor)
     @Mapping(target = "amount", source = "dto.amount")
-    @Mapping(target = "value", source = "dto.value")
+    @Mapping(target = "totalValue", source = "dto.value")
     @Mapping(target = "description", source = "dto.description")
 
     // Mapeamento dos relacionamentos
