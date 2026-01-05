@@ -47,7 +47,7 @@ public class SaleService {
                 .orElseThrow(() -> new ResourceNotFoundException("Seller not found with id: " + dto.getSellerId()));
 
         //Converter DTO -> Entity usando Mapper
-        Sale sale = saleMapper.toEntiy(dto, client, seller);
+        Sale sale = saleMapper.toEntity(dto, client, seller);
 
         // Salvar no banco
         Sale savedSale = saleRepository.save(sale);

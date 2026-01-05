@@ -13,19 +13,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @Entity
 @Table(name = "managers")
-public class Manager {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Manager extends User{
 
     @Column(nullable = false)
     private String name;
-
-    @OneToOne(optional = false)
-    @JoinColumn(
-            name = "user_id",
-            nullable = false,
-            unique = true)
-    private User user;
 }

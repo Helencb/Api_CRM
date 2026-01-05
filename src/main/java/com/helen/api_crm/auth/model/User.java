@@ -32,11 +32,4 @@ public class User {
 
     @Column(nullable = false)
     private boolean active = true;
-
-    @OneToOne(mappedBy = "user")
-    private Seller seller;
-
-    @OneToOne(mappedBy = "user")
-    private Manager manager;
-
 }

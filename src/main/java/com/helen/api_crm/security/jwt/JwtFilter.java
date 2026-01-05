@@ -1,6 +1,5 @@
 package com.helen.api_crm.security.jwt;
 
-import com.helen.api_crm.auth.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,9 +31,10 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
-            String username = jwtService.validateToken(token);
 
-            if (username != null) {
+            String username = jwtService.extractUsername(token);
+
+            if (username != null && jwtService.isTokenValid(token)) {
                 UserDetails userDetails = User.builder()
                         .username(username)
                         .password("") // não é usado aqui
@@ -52,6 +52,7 @@ public class JwtFilter extends OncePerRequestFilter {
             }
         }
 
+        // Continua o fluxo de filtros
         filterChain.doFilter(request, response);
     }
 }

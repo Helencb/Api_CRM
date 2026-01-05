@@ -6,6 +6,7 @@ import com.helen.api_crm.auth.dto.LoginRequestDTO;
 import com.helen.api_crm.auth.dto.LoginResponseDTO;
 import com.helen.api_crm.auth.model.User;
 import com.helen.api_crm.exception.BusinessException;
+import com.helen.api_crm.security.jwt.JwtService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +36,7 @@ public class AuthService {
         }
 
         // Gera token
-        String token = jwtService.generateToken(user);
+        String token = jwtService.generateToken(String.valueOf(user));
 
         // Cria DTP de Resposta
         LoginResponseDTO response = new LoginResponseDTO();

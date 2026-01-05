@@ -12,5 +12,6 @@ public record SellerRequestDTO (
     @NotBlank(message = "Senha é obrigatória")
     String password,
 
-    String phone)
+    String phone
+)
 {}
