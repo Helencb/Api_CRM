@@ -36,9 +36,9 @@ public class AuthService {
         }
 
         // Gera token
-        String token = jwtService.generateToken(String.valueOf(user));
+        String token = jwtService.generateToken(user.getEmail());
 
-        // Cria DTP de Resposta
+        // Cria DTO de Resposta
         LoginResponseDTO response = new LoginResponseDTO();
         response.setToken(token);
         response.setRole(user.getRole().name());
