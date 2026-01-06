@@ -7,4 +7,4 @@ public record DashboardSummaryDTO (
         Long totalSellers,
         Long totalSales,
         BigDecimal totalRevenue
-) {}
+){ }

@@ -1,10 +1,12 @@
 package com.helen.api_crm.dashboard.controller;
 
+import com.helen.api_crm.dashboard.dto.DashboardSellerDTO;
 import com.helen.api_crm.dashboard.dto.DashboardSummaryDTO;
 import com.helen.api_crm.dashboard.service.DashboardService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/dashboard")
 @PreAuthorize("hasAnyRole('MANAGER')")
 public class DashboardController {
+
     private final DashboardService dashboardService;
 
     public DashboardController(DashboardService dashboardService) {
@@ -19,7 +22,14 @@ public class DashboardController {
     }
 
     @GetMapping("/summary")
-    public ResponseEntity<DashboardSummaryDTO> summary() {
-        return ResponseEntity.ok(dashboardService.getSummary());
+    public ResponseEntity<DashboardSummaryDTO> getSummary() {
+        DashboardSummaryDTO summary = dashboardService.getSummary();
+        return ResponseEntity.ok(summary);
+    }
+
+    @GetMapping("/seller/{sellerid}")
+    public ResponseEntity<DashboardSellerDTO> getDashboardBySeller(@PathVariable Long sellerid) {
+        DashboardSellerDTO dashboard = dashboardService.getDashboardBySeller(sellerid);
+        return ResponseEntity.ok(dashboard);
     }
 }

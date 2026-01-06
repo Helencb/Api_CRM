@@ -16,11 +16,11 @@ public class SaleRequestDTO {
 
     @NotNull(message = "Value is mandatory")
     @Positive(message = "The value must be greater than zero.")
-    private BigDecimal value;
+    private BigDecimal totalValue;
 
     @NotNull(message = "Quantity is mandatory")
     @Positive(message = "The quantity must be greater than zero.")
-    private Double amount;
+    private Integer amount;
 
     private String description;
 

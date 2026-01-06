@@ -8,6 +8,7 @@ import com.helen.api_crm.sale.mapper.SaleMapper;
 import com.helen.api_crm.sale.dto.SaleRequestDTO;
 import com.helen.api_crm.sale.dto.SaleResponseDTO;
 import com.helen.api_crm.sale.model.Sale;
+import com.helen.api_crm.sale.model.SaleStatus;
 import com.helen.api_crm.sale.repository.SaleRepository;
 import com.helen.api_crm.seller.model.Seller;
 import com.helen.api_crm.seller.repository.SellerRepository;
@@ -15,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,6 +51,8 @@ public class SaleService {
         //Converter DTO -> Entity usando Mapper
         Sale sale = saleMapper.toEntity(dto, client, seller);
 
+        sale.setStatus(SaleStatus.PENDING);
+        sale.setCreatedAt(LocalDateTime.now());
         // Salvar no banco
         Sale savedSale = saleRepository.save(sale);
 
@@ -80,7 +84,7 @@ public class SaleService {
                 .stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_MANAGER"));
         if (!isManager && !sale.getSeller().getEmail().equals(emailLogado)) {
-            throw new BusinessException("Invalid email or password");
+            throw new BusinessException("Access denied");
         }
 
         return saleMapper.toDTO(sale);
@@ -92,15 +96,16 @@ public class SaleService {
         Sale sale = saleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Sale not found with id: " + id));
 
-        if (sale.isCompleted()){
+        if (sale.getStatus() == SaleStatus.COMPLETED){
             throw new BusinessException("Sale is already completed");
         }
 
-        if (sale.getFailureReason() != null) {
-            throw new BusinessException("Sale failure reason: " + sale.getFailureReason());
+        if (sale.getStatus() == SaleStatus.CANCELED) {
+            throw new BusinessException("Canceled sale cannot be completed: " + sale.getFailureReason());
         }
 
-        sale.setCompleted(true);
+        sale.setStatus(SaleStatus.COMPLETED);
+        sale.setFailureReason(null);
 
         Sale savedSale = saleRepository.save(sale);
 
@@ -112,15 +117,15 @@ public class SaleService {
         Sale sale = saleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Sale not found with id: " + id));
 
-        if (sale.isCompleted()){
-            throw new BusinessException("Sale is already completed");
+        if (sale.getStatus() == SaleStatus.COMPLETED){
+            throw new BusinessException("Completed sale cannot be canceled");
         }
         if (failureReason != null && failureReason.isBlank()) {
             throw new BusinessException("Sale failure reason: " + failureReason);
         }
 
+        sale.setStatus(SaleStatus.CANCELED);
         sale.setFailureReason(failureReason);
-        sale.setCompleted(false);
 
         Sale savedSale = saleRepository.save(sale);
 

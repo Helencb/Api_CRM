@@ -1,6 +1,7 @@
 package com.helen.api_crm.sale.dto;
 
 
+import com.helen.api_crm.sale.model.SaleStatus;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -14,11 +15,12 @@ import java.time.LocalDateTime;
 public class SaleResponseDTO {
     private Long id;
     private String name;
-    private BigDecimal value;
+    private BigDecimal totalValue;
     private Integer amount;
-    private boolean completed;
+    private String description;
+    private SaleStatus status;
     private String failureReason;
-    private String clientNome;
-    private String sellerNome;
-    private LocalDateTime date;
+    private Long clientId;
+    private Long sellerId;
+    private LocalDateTime createdAt;
 }

@@ -28,21 +28,22 @@ public class Sale {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal totalValue;
 
-    // Indica se a venda foi concluída
+    // Status da venda (ex: PENDING, COMPLETED, CANCELED)
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private boolean completed;
+    private SaleStatus status;
 
     // Motivo da falha (caso a venda não tenha sido concluída)
     private String failureReason;
 
     // Muitas vendas podem pertencer a um cliente
     @ManyToOne
-    @JoinColumn(name = "client_Id", nullable = false)
+    @JoinColumn(name = "client_id", nullable = false)
     private Client client;
 
     // Muitas vendas podem pertencer a um vendedor
     @ManyToOne
-    @JoinColumn(name = "seller_Id", nullable = false)
+    @JoinColumn(name = "seller_id", nullable = false)
     private Seller seller;
 
     // Quantidade vendida (ex: número de itens)
@@ -54,5 +55,5 @@ public class Sale {
 
     // Data e hora da venda
     @Column(nullable = false)
-    private LocalDateTime date;
+    private LocalDateTime createdAt;
 }
