@@ -1,8 +1,6 @@
 package com.helen.api_crm.auth.model;
 
 import com.helen.api_crm.common.enums.Role;
-import com.helen.api_crm.manager.model.Manager;
-import com.helen.api_crm.seller.model.Seller;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,6 +13,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Entity
 @Table(name = "users")
+@Inheritance(strategy = InheritanceType.JOINED)
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

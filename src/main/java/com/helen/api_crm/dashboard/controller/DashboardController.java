@@ -34,8 +34,8 @@ public class DashboardController {
 
     @GetMapping("/seller/summary/{selleId}")
     @PreAuthorize("hasAnyRole('MANAGER')")
-    public ResponseEntity<DashboardSellerDTO> getDashboardBySeller(@PathVariable Long sellerId) {
-        DashboardSellerDTO dashboard = dashboardService.getDashboardBySeller(sellerId);
+    public ResponseEntity<DashboardSellerDTO> getDashboardBySeller(@PathVariable Long selleId) {
+        DashboardSellerDTO dashboard = dashboardService.getDashboardBySeller(selleId);
         return ResponseEntity.ok(dashboard);
     }
 

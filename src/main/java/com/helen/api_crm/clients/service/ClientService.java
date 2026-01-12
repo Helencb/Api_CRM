@@ -7,11 +7,10 @@ import com.helen.api_crm.clients.model.Client;
 import com.helen.api_crm.clients.repository.ClientRepository;
 import com.helen.api_crm.exception.ClientNotFoundException;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
-
+// Teste de endpointes de cliente
 @Service
 public class ClientService {
 
@@ -42,7 +41,7 @@ public class ClientService {
     // Buscar cliente por ID
     public ClientResponseDTO getClientById(Long id) {
         Client client = clientRepository.findById(id)
-                .orElseThrow(() -> new ClientNotFoundException("Customer not found"));
+                .orElseThrow(() -> new ClientNotFoundException("Client not found"));
 
         return clientMapper.toDTO(client);
     }

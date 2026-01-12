@@ -12,12 +12,6 @@ import java.util.List;
 
 @Repository
 public interface SaleRepository extends JpaRepository<Sale, Long> {
-    // Vendas por cliente
-    List<Sale> findByClientId(Long clientId);
-
-    // Vendas por vendedor
-    List<Sale> findBySellerId(Long sellerId);
-
     //Conta todas as vendas de um seller
     Long countBySellerId(Long sellerId);
 

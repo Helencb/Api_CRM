@@ -1,6 +1,6 @@
 package com.helen.api_crm.security.service;
 
-import com.helen.api_crm.auth.Repository.UserRepository;
+import com.helen.api_crm.auth.repository.UserRepository;
 import com.helen.api_crm.auth.model.User;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -27,11 +27,13 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(() ->
                         new UsernameNotFoundException("User not found with email: " + email));
 
+        String roleName = "ROLE_" + user.getRole().name();
+
         return new org.springframework.security.core.userdetails.User(
                     user.getEmail(),
                     user.getPassword(),
-                    List.of(new SimpleGrantedAuthority(user.getRole().name()))
-            );
+                    List.of(new SimpleGrantedAuthority(roleName)
+            ));
         }
     }
 

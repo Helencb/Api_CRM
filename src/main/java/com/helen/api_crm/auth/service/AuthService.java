@@ -1,7 +1,7 @@
 package com.helen.api_crm.auth.service;
 
 
-import com.helen.api_crm.auth.Repository.UserRepository;
+import com.helen.api_crm.auth.repository.UserRepository;
 import com.helen.api_crm.auth.dto.LoginRequestDTO;
 import com.helen.api_crm.auth.dto.LoginResponseDTO;
 import com.helen.api_crm.auth.model.User;
@@ -35,6 +35,10 @@ public class AuthService {
             throw new BusinessException("Passwords don't match");
         }
 
+        if (!user.isActive()) {
+            throw new BusinessException("User is inactive");
+        }
+
         // Gera token
         String token = jwtService.generateToken(user.getEmail());
 
@@ -42,6 +46,8 @@ public class AuthService {
         LoginResponseDTO response = new LoginResponseDTO();
         response.setToken(token);
         response.setRole(user.getRole().name());
+
+        response.setName(user.getEmail());
 
         return response;
     }

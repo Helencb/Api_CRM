@@ -25,7 +25,7 @@ public class ManagerController {
     @PostMapping
     public ResponseEntity<ManagerResponseDTO> create(
             @RequestBody  @Valid ManagerRequestDTO dto){
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(dto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.createManager(dto));
     }
 
     @GetMapping

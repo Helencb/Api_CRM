@@ -31,6 +31,7 @@ public class SellerController {
     }
 
     // Listar todos os vendedores
+    @PreAuthorize("hasRole('MANAGER')")
     @GetMapping
     public ResponseEntity<List<SellerResponseDTO>> getAllSellers() {
         List<SellerResponseDTO> sellers = sellerService.getAllSellers();

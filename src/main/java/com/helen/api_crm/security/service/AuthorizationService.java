@@ -19,7 +19,7 @@ public class AuthorizationService {
         //Se for MANAGER, libera tudo
         if (authentication.getAuthorities()
                 .stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_MANAGER"))) {
+                .anyMatch(authority -> authority.getAuthority().equals("MANAGER"))) {
             return true;
         }
 

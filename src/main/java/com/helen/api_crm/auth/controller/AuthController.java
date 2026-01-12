@@ -1,7 +1,10 @@
 package com.helen.api_crm.auth.controller;
+import com.helen.api_crm.auth.dto.CreateUserRequest;
 import com.helen.api_crm.auth.dto.LoginResponseDTO;
+import com.helen.api_crm.auth.model.User;
 import com.helen.api_crm.auth.service.AuthService;
 import com.helen.api_crm.auth.dto.LoginRequestDTO;
+import com.helen.api_crm.auth.service.UserCreationService;
 import com.helen.api_crm.exception.BusinessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,9 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final UserCreationService userCreationService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, UserCreationService userCreationService) {
         this.authService = authService;
+        this.userCreationService = userCreationService;
     }
 
     @PostMapping("/login")
@@ -34,5 +39,15 @@ public class AuthController {
                     .body("Internal server error");
         }
 
+    }
+
+    @PostMapping
+    public ResponseEntity<User> createUser(@RequestBody CreateUserRequest request) {
+        User user = userCreationService.createUser(
+                request.email(),
+                request.password(),
+                request.role()
+        );
+        return ResponseEntity.ok(user);
     }
 }

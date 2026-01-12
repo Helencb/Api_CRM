@@ -3,9 +3,8 @@ package com.helen.api_crm.clients.controller;
 import com.helen.api_crm.clients.service.ClientService;
 import com.helen.api_crm.clients.dto.ClientRequestDTO;
 import com.helen.api_crm.clients.dto.ClientResponseDTO;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +20,7 @@ public class ClientController {
     @PostMapping
     public ResponseEntity<ClientResponseDTO> createClient(@RequestBody ClientRequestDTO dto) {
         ClientResponseDTO response = clientService.createClient(dto);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping

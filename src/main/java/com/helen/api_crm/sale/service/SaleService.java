@@ -39,7 +39,6 @@ public class SaleService {
     }
     // Criar venda
     public SaleResponseDTO createSale (SaleRequestDTO dto) {
-
         // Buscar Cliente
         Client client = clientRepository.findById(dto.getClientId())
                 .orElseThrow(() -> new ResourceNotFoundException("Client not found with id: " + dto.getClientId()));
@@ -52,6 +51,7 @@ public class SaleService {
         Sale sale = saleMapper.toEntity(dto, client, seller);
 
         sale.setStatus(SaleStatus.PENDING);
+
         sale.setCreatedAt(LocalDateTime.now());
         // Salvar no banco
         Sale savedSale = saleRepository.save(sale);

@@ -22,7 +22,7 @@ public class ManagerService {
     private final PasswordEncoder passwordEncoder;
     private final ManagerMapper managerMapper;
 
-    public ManagerResponseDTO create(ManagerRequestDTO dto) {
+    public ManagerResponseDTO createManager(ManagerRequestDTO dto) {
         Manager manager = new Manager();
         manager.setEmail(dto.email());
         manager.setPassword(passwordEncoder.encode(dto.password()));
