@@ -9,6 +9,11 @@ import com.helen.api_crm.sale.service.SaleService;
 import com.helen.api_crm.security.jwt.JwtFilter;
 import com.helen.api_crm.security.jwt.JwtService;
 import com.helen.api_crm.security.service.AuthorizationService;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -16,9 +21,12 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -48,14 +56,26 @@ public class SaleControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @BeforeEach
+    void setup() throws ServletException, IOException {
+        doAnswer(invocation -> {
+            ServletRequest request = invocation.getArgument(0);
+            ServletResponse response = invocation.getArgument(1);
+            FilterChain chain = invocation.getArgument(2);
+
+            chain.doFilter(request, response);
+            return null;
+        }).when(jwtFilter).doFilter(any(ServletRequest.class), any(ServletResponse.class), any(FilterChain.class));
+    }
+
     // Teste de Criar venda
     @Test
-    @WithMockUser(username = "admin", roles = {"MANAGER"})
+    @WithMockUser(username = "manager", roles = {"MANAGER"})
     void shouldCreateSaleSuccessfully() throws Exception {
         SaleRequestDTO request = createSaleRequest();
         SaleResponseDTO response = createSaleResponse();
 
-        when(saleService.createSale(any()))
+        when(saleService.createSale(any(SaleRequestDTO.class)))
                 .thenReturn(response);
 
         mockMvc.perform(post("/api/sales")
@@ -65,7 +85,8 @@ public class SaleControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.name").value("Computador"))
-                .andExpect(jsonPath("$.amount").value(1000.00))
+                .andExpect(jsonPath("$.totalValue").value(BigDecimal.valueOf(1000)))
+                .andExpect(jsonPath("$.amount").value(1))
                 .andExpect(jsonPath("$.clientId").value(1L))
                 .andExpect(jsonPath("$.sellerId").value(1L))
                 .andExpect(jsonPath("$.status").value("PENDING"));
@@ -73,14 +94,15 @@ public class SaleControllerTest {
 
     // Teste Venda Completa
     @Test
-    @WithMockUser(roles = {"MANAGER"})
-    void shouldCompleteSaleSucessfully() throws Exception {
-        SaleResponseDTO response = new SaleResponseDTO();
+    @WithMockUser(username = "manager", roles = {"MANAGER"})
+    void shouldCompleteSaleSuccessfully() throws Exception {
+        SaleResponseDTO response = createCompletedSaleResponse();
 
         when(saleService.completeSale(1L))
                 .thenReturn(response);
 
-        mockMvc.perform(post("/api/sales/1/complete"))
+        mockMvc.perform(put("/api/sales/1/complete")
+                        .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("COMPLETED"));
 
@@ -88,15 +110,17 @@ public class SaleControllerTest {
 
     // Teste de venda cancelada
     @Test
-    @WithMockUser(roles = {"MANAGER"})
+    @WithMockUser(username = "manager", roles = {"MANAGER"})
     void shouldCancelSaleSuccessfully() throws Exception {
-        SaleCancelRequestDTO request = new SaleCancelRequestDTO();
+        SaleCancelRequestDTO request = createSaleCancelRequest();
+
         SaleResponseDTO response = createCanceledSaleResponse();
 
-        when(saleService.cancelSale(eq(1L), eq("Cliente desistiu")))
+        when(saleService.cancelSale(eq(1L), eq(request.getFailureReason())))
                 .thenReturn(response);
 
         mockMvc.perform(put("/api/sales/{id}/cancel", 1L)
+                        .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -110,7 +134,7 @@ public class SaleControllerTest {
         when(saleService.getAllSales())
                 .thenReturn(List.of(createSaleResponse()));
 
-        mockMvc.perform(get("/api/sales/all"))
+        mockMvc.perform(get("/api/sales"))
                 .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(1L));
     }
@@ -121,11 +145,11 @@ public class SaleControllerTest {
     void shouldGetSalesByIdSuccessfully() throws Exception {
         SaleResponseDTO response = createSaleResponse();
 
-        when(authorizationService.canAcessSale(eq(1l), any()))
+        when(authorizationService.canAcessSale(eq(1L), any()))
                 .thenReturn(true);
         when(saleService.getSaleById(1L))
                 .thenReturn(response);
-        mockMvc.perform(get("/api/sales/1/sale"))
+        mockMvc.perform(get("/api/sales/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L));
     }
@@ -163,7 +187,7 @@ public class SaleControllerTest {
                 BigDecimal.valueOf(1000),
                 1,
                 "Descrição do produto",
-                SaleStatus.PENDING,
+                SaleStatus.COMPLETED,
                 null,
                 1L,
                 1L,
@@ -177,10 +201,16 @@ public class SaleControllerTest {
                 BigDecimal.valueOf(1000),
                 1,
                 "Descrição do produto",
-                SaleStatus.PENDING,
-                null,
+                SaleStatus.CANCELED,
+                "Cliente desistiu",
                 1L,
                 1L,
                 java.time.LocalDateTime.now());
+    }
+
+    private SaleCancelRequestDTO createSaleCancelRequest() {
+        SaleCancelRequestDTO request = new SaleCancelRequestDTO();
+        request.setFailureReason("Cliente desistiu");
+        return request;
     }
 }

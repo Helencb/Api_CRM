@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -87,14 +88,16 @@ public class SaleServiceTest {
                 .thenReturn(Optional.of(client));
         when(sellerRepository.findById(1L))
                 .thenReturn(Optional.of(seller));
-        when(saleMapper.toEntity(request, client, seller)).thenReturn(sale);
+
+        when(saleMapper.toEntity(eq(request), eq(client), eq(seller), any(LocalDateTime.class)))
+                .thenReturn(sale);
         when(saleRepository.save(sale)).thenReturn(sale);
 
         saleService.createSale(request);
 
         verify(clientRepository).findById(1L);
         verify(sellerRepository).findById(1L);
-        verify(saleMapper).toEntity(request, client, seller);
+        verify(saleMapper).toEntity(eq(request), eq(client), eq(seller), any(LocalDateTime.class));
         verify(saleRepository).save(sale);
     }
 

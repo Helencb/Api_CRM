@@ -9,6 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
@@ -44,7 +47,7 @@ public class ClientControllerTest {
         when(clientService.createClient(any()))
                 .thenReturn(response);
 
-        mockMvc.perform(post("/api/clientes")
+        mockMvc.perform(post("/api/clients")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":\"Helen\",\"email\":\"helen@crm.com\",\"phone\":\"18996067534\"}"))
                 .andExpect(status().isCreated())
@@ -57,14 +60,17 @@ public class ClientControllerTest {
     // Teste para listar todos os clientes
     @Test
     void shouldGetAllClients() throws Exception {
-        List<ClientResponseDTO> clients = List.of(
+        List<ClientResponseDTO> clientsList = List.of(
                 new ClientResponseDTO(1L, "Helen", "helen@crm.com", "18996067534"),
                 new ClientResponseDTO(2L, "Adam", "adam@crm.com", "18999999999")
         );
 
-        when(clientService.getAllClients()).thenReturn(clients);
+        Page<ClientResponseDTO> clientPage = new PageImpl<>(clientsList);
 
-        mockMvc.perform(get("/api/clientes")
+        when(clientService.getAllClients(any(Pageable.class)))
+                .thenReturn(clientPage);
+
+        mockMvc.perform(get("/api/clients")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(1))
@@ -79,7 +85,7 @@ public class ClientControllerTest {
         ClientResponseDTO response =
                 new ClientResponseDTO(1L, "Helen", "helen@crm.com", "18996067534");
         when(clientService.getClientById(1L)).thenReturn(response);
-        mockMvc.perform(get("/api/clientes/1")
+        mockMvc.perform(get("/api/clients/1")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))

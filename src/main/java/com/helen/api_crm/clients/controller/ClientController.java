@@ -7,11 +7,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 
 @RestController
-@RequestMapping("/api/clientes")
+@RequestMapping("/api/clients")
 @RequiredArgsConstructor
 public class ClientController {
 
@@ -24,8 +26,11 @@ public class ClientController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ClientResponseDTO>> getAllClients() {
-        return ResponseEntity.ok(clientService.getAllClients());
+    public ResponseEntity<Page<ClientResponseDTO>> getAllClients(
+            @PageableDefault(page = 0, size = 10, sort = "name", direction = Sort.Direction.ASC)
+            Pageable pageable
+            ) {
+        return ResponseEntity.ok(clientService.getAllClients(pageable));
     }
 
     @GetMapping("/{id}")
@@ -33,4 +38,14 @@ public class ClientController {
         return ResponseEntity.ok(clientService.getClientById(id));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<ClientResponseDTO> updateClient(@PathVariable Long id, @RequestBody ClientRequestDTO dto) {
+        return ResponseEntity.ok(clientService.updateClient(id, dto));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ClientResponseDTO> deleteClient(@PathVariable Long id) {
+        clientService.deleteClient(id);
+        return ResponseEntity.noContent().build(); //Retorna 204
+    }
 }

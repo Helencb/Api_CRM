@@ -14,6 +14,9 @@ import com.helen.api_crm.seller.model.Seller;
 import com.helen.api_crm.seller.repository.SellerRepository;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+
 
 
 import java.time.LocalDateTime;
@@ -38,6 +41,7 @@ public class SaleService {
         this.saleMapper = saleMapper;
     }
     // Criar venda
+    @Transactional
     public SaleResponseDTO createSale (SaleRequestDTO dto) {
         // Buscar Cliente
         Client client = clientRepository.findById(dto.getClientId())
@@ -47,12 +51,13 @@ public class SaleService {
         Seller seller = sellerRepository.findById(dto.getSellerId())
                 .orElseThrow(() -> new ResourceNotFoundException("Seller not found with id: " + dto.getSellerId()));
 
+        LocalDateTime now = LocalDateTime.now();
+
         //Converter DTO -> Entity usando Mapper
-        Sale sale = saleMapper.toEntity(dto, client, seller);
+        Sale sale = saleMapper.toEntity(dto, client, seller, now);
 
         sale.setStatus(SaleStatus.PENDING);
 
-        sale.setCreatedAt(LocalDateTime.now());
         // Salvar no banco
         Sale savedSale = saleRepository.save(sale);
 
@@ -61,6 +66,7 @@ public class SaleService {
     }
 
     // Listar todas as vendas
+    @Transactional(readOnly = true)
     public List<SaleResponseDTO> getAllSales() {
         return saleRepository.findAll()
                 .stream()
@@ -69,6 +75,7 @@ public class SaleService {
     }
 
     // Buscar venda por ID
+    @Transactional(readOnly = true)
     public SaleResponseDTO getSaleById(Long id) {
         Sale sale = saleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Sale not found with id: " + id));
@@ -91,6 +98,7 @@ public class SaleService {
     }
 
     // Concluir Venda
+    @Transactional
     public SaleResponseDTO completeSale(Long id) {
 
         Sale sale = saleRepository.findById(id)
@@ -113,6 +121,7 @@ public class SaleService {
     }
 
     //Cancelar Venda
+    @Transactional
     public SaleResponseDTO cancelSale(Long id, String failureReason) {
         Sale sale = saleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Sale not found with id: " + id));

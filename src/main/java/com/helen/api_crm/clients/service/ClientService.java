@@ -5,10 +5,13 @@ import com.helen.api_crm.clients.dto.ClientResponseDTO;
 import com.helen.api_crm.clients.mapper.ClientMapper;
 import com.helen.api_crm.clients.model.Client;
 import com.helen.api_crm.clients.repository.ClientRepository;
+import com.helen.api_crm.exception.BusinessException;
 import com.helen.api_crm.exception.ClientNotFoundException;
 import org.springframework.stereotype.Service;
-import java.util.List;
-import java.util.stream.Collectors;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 
 // Teste de endpointes de cliente
 @Service
@@ -23,7 +26,8 @@ public class ClientService {
         this.clientMapper = clientMapper;
     }
 
-    //Criar cliente
+    //Criar clientes
+    @Transactional
     public ClientResponseDTO createClient(ClientRequestDTO dto) {
         Client client = clientMapper.toEntity(dto);
         Client savedClient = clientRepository.save(client);
@@ -31,19 +35,45 @@ public class ClientService {
     }
 
     // Listar todos clientes
-    public List<ClientResponseDTO> getAllClients() {
-        return clientRepository.findAll()
-                .stream()
-                .map(clientMapper::toDTO)
-                .collect(Collectors.toList());
+    @Transactional(readOnly = true)
+    public Page<ClientResponseDTO> getAllClients(Pageable pageable) {
+        return clientRepository.findAll(pageable)
+                .map(clientMapper::toDTO);
     }
 
     // Buscar cliente por ID
+    @Transactional(readOnly = true)
     public ClientResponseDTO getClientById(Long id) {
         Client client = clientRepository.findById(id)
                 .orElseThrow(() -> new ClientNotFoundException("Client not found"));
 
         return clientMapper.toDTO(client);
+    }
+
+    // Atualiza dados
+    @Transactional
+    public ClientResponseDTO updateClient(Long id, ClientRequestDTO dto) {
+        Client client = clientRepository.findById(id)
+                .orElseThrow(() -> new ClientNotFoundException("Client not found"));
+
+        client.setName(dto.getName());
+        client.setEmail(dto.getEmail());
+        client.setPhone(dto.getPhone());
+
+        return clientMapper.toDTO(clientRepository.save(client));
+    }
+
+    // EXCLUIR CLIENTE
+    @Transactional
+    public void deleteClient(Long id) {
+        Client client = clientRepository.findById(id)
+                .orElseThrow(() -> new ClientNotFoundException("Client not found"));
+
+        if (client.getSales() != null && !client.getSales().isEmpty()) {
+            throw new BusinessException("Cannot delete with associated sales. Please delete sales first");
+        }
+
+        clientRepository.delete(client);
     }
 }
 

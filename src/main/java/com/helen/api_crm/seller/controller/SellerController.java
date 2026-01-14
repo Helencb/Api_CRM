@@ -21,7 +21,7 @@ public class SellerController {
         this.sellerService = sellerService;
     }
 
-    // Criar Vemdedor
+    // Criar Vendedor
     @PreAuthorize("hasRole('MANAGER')")
     @PostMapping
     public ResponseEntity<SellerResponseDTO> createSeller(@RequestBody @Valid SellerRequestDTO dto) {
