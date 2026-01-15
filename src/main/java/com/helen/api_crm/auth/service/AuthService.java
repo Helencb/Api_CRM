@@ -10,6 +10,9 @@ import com.helen.api_crm.security.jwt.JwtService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
 public class AuthService {
 
@@ -39,14 +42,17 @@ public class AuthService {
             throw new BusinessException("User is inactive");
         }
 
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("role", user.getRole().name());
+        extraClaims.put("userId", user.getId());
+
         // Gera token
-        String token = jwtService.generateToken(user.getEmail());
+        String token = jwtService.generateToken(extraClaims, user.getEmail());
 
         // Cria DTO de Resposta
         LoginResponseDTO response = new LoginResponseDTO();
         response.setToken(token);
         response.setRole(user.getRole().name());
-
         response.setName(user.getEmail());
 
         return response;

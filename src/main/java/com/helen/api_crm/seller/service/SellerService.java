@@ -7,6 +7,7 @@ import com.helen.api_crm.manager.model.Manager;
 import com.helen.api_crm.manager.repository.ManagerRepository;
 import com.helen.api_crm.seller.dto.SellerRequestDTO;
 import com.helen.api_crm.seller.dto.SellerResponseDTO;
+import com.helen.api_crm.seller.dto.SellerUpdateDTO;
 import com.helen.api_crm.seller.mapper.SellerMapper;
 import com.helen.api_crm.seller.model.Seller;
 import com.helen.api_crm.seller.repository.SellerRepository;
@@ -47,9 +48,14 @@ public class SellerService {
             throw new RuntimeException("Only managers can create sellers");
         }
 
-        // Busca a entidade Manager correta usando o ID do usuário
-        Manager manager = managerRepository.findById(userLogado.getId())
-                .orElseThrow(() -> new RuntimeException("Manager not found"));
+        Manager manager;
+        if (userLogado instanceof Manager) {
+            manager = (Manager) userLogado;
+        } else {
+            manager = managerRepository.findById(userLogado.getId())
+                    .orElseThrow(() -> new RuntimeException("Critical: User has MANAGER role but is not in managers table. ID: "
+                            + userLogado.getId()));
+        }
 
         // Criar o User para autentificação
         Seller seller = new Seller();
@@ -67,7 +73,7 @@ public class SellerService {
 
     //Listar todos os vendedores
     public List<SellerResponseDTO> getAllSellers() {
-        return sellerRepository.findAll()
+        return sellerRepository.findAllByActiveTrue()
                 .stream()
                 .map(sellerMapper::toDTO)
                 .toList();
@@ -78,6 +84,41 @@ public class SellerService {
         Seller seller = sellerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Seller not found"));
         return sellerMapper.toDTO(seller);
+    }
+
+    @Transactional
+    public SellerResponseDTO updateSeller(Long id, SellerUpdateDTO dto) {
+        Seller seller = sellerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Seller not found"));
+
+        if (dto.name() != null && !dto.name().isBlank()) {
+            seller.setName(dto.name());
+        }
+
+        if (dto.phone() != null){
+            seller.setPhone(dto.phone());
+        }
+
+        if (dto.email() != null && !dto.email().isBlank() && !dto.email().equals(seller.getEmail())) {
+            if (userRepository.existsByEmail(dto.email())) {
+                throw new RuntimeException("Email already in use");
+            }
+            seller.setEmail(dto.email());
+        }
+
+        if (dto.password() != null && !dto.password().isBlank()) {
+            seller.setPassword(passwordEncoder.encode(dto.password()));
+        }
+        return sellerMapper.toDTO(sellerRepository.save(seller));
+    }
+
+    @Transactional
+    public void deleteSeller(Long id) {
+        Seller seller = sellerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Seller not found"));
+
+        seller.setActive(false);
+        sellerRepository.save(seller);
     }
 }
 
