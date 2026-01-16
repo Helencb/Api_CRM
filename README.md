@@ -1,120 +1,207 @@
-# 🚀 CRM API – Java Spring Boot
+# 🚀 CRM API — Sistema de Gestão de Relacionamento com Clientes
 
-API RESTful de CRM (Customer Relationship Management) desenvolvida em Java com Spring Boot, utilizando autenticação JWT, Spring Security, JPA/Hibernate, MySQL e testes unitários.
-O projeto segue boas práticas, arquitetura organizada e foco em código limpo e manutenível.
+![Java](https://img.shields.io/badge/Java-17-orange.svg)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.0-brightgreen.svg)
+![License](https://img.shields.io/badge/License-MIT-blue.svg)
 
-## 📌 Funcionalidades
+API RESTful robusta desenvolvida para **gestão de relacionamento com clientes (CRM)**, com foco em **segurança, organização, escalabilidade e boas práticas de engenharia de software**.
 
-CRUD completo de clientes: 
+O sistema gerencia **hierarquias entre Gerentes e Vendedores**, controla o **fluxo completo de Vendas** (criação, aprovação e cancelamento) e disponibiliza **métricas consolidadas em dashboards**, seguindo princípios como **SOLID, DRY e Clean Code**.
 
-- Cadastro
+---
 
-- Listagem
+## 🧠 Visão Geral
 
-- Busca por ID
+- Arquitetura em camadas
+- Autenticação e autorização com **JWT**
+- Controle de acesso baseado em papéis (**RBAC**)
+- Regras de negócio bem definidas
+- Código testado e versionamento de banco automatizado
 
-- Atualização
+---
 
-- Exclusão
+## 🛠️ Stack Tecnológica
 
-- Autenticação e autorização com JWT
+- **Linguagem:** Java 17
+- **Framework:** Spring Boot 3.2
+- **Segurança:** Spring Security 6 + JWT
+- **Banco de Dados:** MariaDB / MySQL
+  > Compatível com PostgreSQL
+- **Migração de Banco:** Flyway
+- **ORM:** JPA / Hibernate
+- **Mapeamento:** MapStruct
+- **Testes:** JUnit 5 & Mockito
+- **Build:** Maven
+- **Documentação:** Swagger / OpenAPI *(previsto)*
 
-- Validações de dados
+---
 
-- Tratamento global de exceções
+## ✨ Funcionalidades Principais
 
-- Paginação e ordenação de resultados
+### 🔐 Autenticação & Segurança (RBAC)
 
-- Testes unitários dos serviços
+- Login com geração de **Token JWT**
+- Controle de acesso baseado em papéis:
+    - **MANAGER**
+        - Acesso total ao sistema
+        - Criação de vendedores
+        - Visualização de dashboards globais
+    - **SELLER**
+        - Acesso restrito aos seus próprios clientes e vendas
+
+---
+
+### 👥 Gestão de Usuários
+
+- Cadastro de vendedores vinculados a um gerente
+- Gestão completa de clientes
+- Validação de permissões por perfil
+
+---
+
+### 💰 Gestão de Vendas
+
+- Criação de vendas (**PENDING**)
+- Finalização de vendas (**COMPLETED**)
+- Cancelamento com motivo obrigatório (**CANCELED**)
+- Aplicação rigorosa de regras de negócio
+  > Ex: vendedor só pode visualizar suas próprias vendas
+
+---
+
+### 📊 Dashboard & Analytics
+
+- Visão consolidada para gerentes:
+    - Total de vendas
+    - Receita
+    - Ticket médio
+- Desempenho individual por vendedor
+
+---
+
+## 🏗️ Arquitetura & Padrões
+
+O projeto segue uma **arquitetura em camadas**, garantindo alta manutenibilidade e testabilidade:
+
+- **Controller Layer**
+    - Endpoints REST
+    - Validação de entrada com `@Valid`
+- **Service Layer**
+    - Regras de negócio
+    - Controle transacional com `@Transactional`
+- **Repository Layer**
+    - Persistência com Spring Data JPA
+- **Mapper Layer**
+    - Conversão entre DTOs e Entidades com MapStruct
+- **Exception Handling**
+    - Tratamento global de erros
+    - Respostas padronizadas em JSON (`ApiError`)
+
+---
+
+## 🚀 Como Executar o Projeto
+
+### 📌 Pré-requisitos
+
+- Java JDK 17+
+- Maven
+- MariaDB ou Docker
+
+---
+
+### 1️⃣ Configuração do Banco de Dados
+
+Crie o banco (ex: `crm_db`) e configure:
+
+```properties
+spring.datasource.url=jdbc:mariadb://localhost:3306/crm_db
+spring.datasource.username=seu_usuario
+spring.datasource.password=sua_senha
+```
+
+---
+
+### 2️⃣ Configuração do JWT
+
+- **Defina a chave secreta e o tempo de expiração do token no arquivo
+application.properties:**
+
+```properties 
+api.security.token.secret=SUA_CHAVE_SECRETA_BASE64_MUITO_LONGA
+api.security.token.expiration=36000000
+```
+
+### 3️⃣ Compilar e Executar
+
+- **Execute os comandos abaixo no terminal:**
+
+```properties
+mvn clean install
+mvn spring-boot:run
+```
+
+### 📍 A API estará disponível em:
+
+```properties
+http://localhost:8080
+```
 
 
-## 🛠️ Tecnologias Utilizadas
+## 📡 Endpoints Principais
 
- - Java
+| Método | Endpoint                   | Descrição                         | Role |
+|--------|----------------------------|-----------------------------------|------|
+| POST   | `/api/auth/login`          | Autenticação e geração do JWT     | Público |
+| GET    | `/api/clients`             | Lista clientes                    | Auth |
+| POST   | `/api/sales`               | Cria nova venda                   | MANAGER, SELLER |
+| PUT    | `/api/sales/{id}/complete` | Finaliza venda                    | MANAGER |
+| POST   | `/api/sellers`             | Cria vendedor                     | MANAGER |
+| GET    | `/dashboard/summary`       | Dashboard consolidado             | MANAGER |
 
- - Spring Boot
+---
 
- - Spring Web
+## 🧪 Testes
 
- - Spring Data JPA (Hibernate)
+- **O projeto possui testes unitários para Controllers e Services, garantindo a confiabilidade do código.**
 
- - Spring Security
+---
 
- - JWT (JSON Web Token)
+- **Para executar os testes:**
 
- - MySQL
+```properties
+mvn test
+```
+---
 
- - Lombok
+## 🤝 Contribuição
 
- - JUnit 5
+### Contribuições são bem-vindas! 
 
- - Mockito
-
- - Maven
-
-
-## 🔐 Segurança
-
-* Autenticação baseada em JWT
-
-* Endpoints protegidos com Spring Security
-
-* Senhas criptografadas utilizando BCrypt
-
-* Token enviado via Header HTTP:
-
-* Authorization: Bearer <TOKEN>
+- **Faça um fork do projeto**
 
 
-## 🧪 Testes Unitários
+- **Crie sua branch:**
 
-O projeto conta com testes unitários utilizando JUnit 5 e Mockito, garantindo:
+```properties
+git checkout -b feature/minha-feature
+```
 
-* Funcionamento correto da camada de serviços
+- **Commit suas mudanças:**
 
-* Validação das regras de negócio
+```properties
+git commit -m "Minha nova feature"
+```
 
-* Tratamento adequado de exceções
+- **Push para a branch:**
+```properties
+git push origin feature/minha-feature
+```
 
-* Testes de listagem, paginação e busca de dados
+- **Abra um Pull Request**
 
+---
 
-## ▶️ Como Executar o Projeto
+### 👩‍💻 Autora
 
-1. Clonar o repositório
-2. Configurar `application.yml` com seu MySQL
-3. Rodar `mvn spring-boot:run`
-4. Testar endpoints com Postman
-
-
-## 📡 Endpoints Principais:
-
-- `POST /login` → gerar token
-- `POST /clientes` → criar cliente
-- `GET /clientes` → listar clientes
-- `GET /clientes/{id}` → buscar cliente
-- `GET /clientes/paginado` → listar clientes paginados
-
-
-## 🧭 Próximas Melhorias (Roadmap)
-
-1. Documentação da API com Swagger / OpenAPI
-
-2. Testes de integração
-
-3. Dockerização da aplicação (API + MySQL)
-
-4. Deploy em ambiente cloud
-
-
-
-## 👩‍💻 Desenvolvido por
-
-Helen Cristina Batista
-Desenvolvedora Back-end Java | Spring Boot
-Estudante de Análise e Desenvolvimento de Sistemas
-
-## 🔗 LinkedIn:
-https://www.linkedin.com/in/hcbatista/
-
-⭐ Se este projeto te ajudou ou chamou atenção, considere deixar uma estrela no repositório!
+**Helen Cristina Batista
+Desenvolvedora Back-end Java**
