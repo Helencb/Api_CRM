@@ -3,6 +3,7 @@ package com.helen.api_crm.clients.controller;
 import com.helen.api_crm.clients.service.ClientService;
 import com.helen.api_crm.clients.dto.ClientRequestDTO;
 import com.helen.api_crm.clients.dto.ClientResponseDTO;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,7 @@ public class ClientController {
     private final ClientService clientService;
 
     @PostMapping
-    public ResponseEntity<ClientResponseDTO> createClient(@RequestBody ClientRequestDTO dto) {
+    public ResponseEntity<ClientResponseDTO> createClient(@RequestBody @Valid ClientRequestDTO dto) {
         ClientResponseDTO response = clientService.createClient(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -39,7 +40,7 @@ public class ClientController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ClientResponseDTO> updateClient(@PathVariable Long id, @RequestBody ClientRequestDTO dto) {
+    public ResponseEntity<ClientResponseDTO> updateClient(@PathVariable @Valid Long id, @RequestBody ClientRequestDTO dto) {
         return ResponseEntity.ok(clientService.updateClient(id, dto));
     }
 

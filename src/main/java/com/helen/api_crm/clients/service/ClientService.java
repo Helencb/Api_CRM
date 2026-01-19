@@ -26,7 +26,6 @@ public class ClientService {
         this.clientMapper = clientMapper;
     }
 
-    //Criar clientes
     @Transactional
     public ClientResponseDTO createClient(ClientRequestDTO dto) {
         Client client = clientMapper.toEntity(dto);
@@ -34,14 +33,12 @@ public class ClientService {
         return clientMapper.toDTO(savedClient);
     }
 
-    // Listar todos clientes
     @Transactional(readOnly = true)
     public Page<ClientResponseDTO> getAllClients(Pageable pageable) {
         return clientRepository.findAll(pageable)
                 .map(clientMapper::toDTO);
     }
 
-    // Buscar cliente por ID
     @Transactional(readOnly = true)
     public ClientResponseDTO getClientById(Long id) {
         Client client = clientRepository.findById(id)
@@ -50,7 +47,6 @@ public class ClientService {
         return clientMapper.toDTO(client);
     }
 
-    // Atualiza dados
     @Transactional
     public ClientResponseDTO updateClient(Long id, ClientRequestDTO dto) {
         Client client = clientRepository.findById(id)
@@ -63,7 +59,6 @@ public class ClientService {
         return clientMapper.toDTO(clientRepository.save(client));
     }
 
-    // EXCLUIR CLIENTE
     @Transactional
     public void deleteClient(Long id) {
         Client client = clientRepository.findById(id)

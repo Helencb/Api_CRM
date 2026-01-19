@@ -38,7 +38,7 @@ public class LoadDataClass {
 
         Optional<User> existingUser = userRepository.findByEmail(email);
         if (existingUser.isPresent()) {
-            return; // manager já existe
+            return;
         }
 
         try {

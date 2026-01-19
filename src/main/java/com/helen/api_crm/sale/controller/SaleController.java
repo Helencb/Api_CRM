@@ -4,6 +4,7 @@ import com.helen.api_crm.sale.dto.SaleCancelRequestDTO;
 import com.helen.api_crm.sale.service.SaleService;
 import com.helen.api_crm.sale.dto.SaleRequestDTO;
 import com.helen.api_crm.sale.dto.SaleResponseDTO;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +24,7 @@ public class SaleController {
     // Criar uma nova venda
     @PreAuthorize("hasAnyRole('MANAGER','SELLER')")
     @PostMapping
-    public ResponseEntity<SaleResponseDTO> createSale(@RequestBody SaleRequestDTO saleRequestDTO) {
+    public ResponseEntity<SaleResponseDTO> createSale(@RequestBody @Valid SaleRequestDTO saleRequestDTO) {
         SaleResponseDTO response = saleService.createSale(saleRequestDTO);
         return ResponseEntity.ok(response);
     }
@@ -38,7 +39,7 @@ public class SaleController {
     // Cancelar Venda
     @PreAuthorize("hasRole('MANAGER')")
     @PutMapping("/{id}/cancel")
-    public ResponseEntity<SaleResponseDTO> cancelSale(@PathVariable Long id, @RequestBody SaleCancelRequestDTO dto) {
+    public ResponseEntity<SaleResponseDTO> cancelSale(@PathVariable Long id, @RequestBody @Valid SaleCancelRequestDTO dto) {
         return ResponseEntity.ok(saleService.cancelSale(id, dto.getFailureReason()));
     }
 

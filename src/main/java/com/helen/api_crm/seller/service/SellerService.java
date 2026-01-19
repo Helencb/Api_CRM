@@ -3,6 +3,8 @@ package com.helen.api_crm.seller.service;
 import com.helen.api_crm.auth.repository.UserRepository;
 import com.helen.api_crm.auth.model.User;
 import com.helen.api_crm.common.enums.Role;
+import com.helen.api_crm.exception.BusinessException;
+import com.helen.api_crm.exception.ResourceNotFoundException;
 import com.helen.api_crm.manager.model.Manager;
 import com.helen.api_crm.manager.repository.ManagerRepository;
 import com.helen.api_crm.seller.dto.SellerRequestDTO;
@@ -34,7 +36,7 @@ public class SellerService {
     public SellerResponseDTO createSeller(SellerRequestDTO dto) {
         // Validar se email já existe
         if(userRepository.existsByEmail(dto.email())) {
-            throw new RuntimeException("Email already in use");
+            throw new BusinessException("Email already in use");
         }
 
         // Obter o email do usuario logado (token)
@@ -42,10 +44,10 @@ public class SellerService {
 
         //Buscar o usuario base para pegar o ID e validar a Role
         User userLogado = userRepository.findByEmail(emailLogado)
-                .orElseThrow(() -> new RuntimeException("Logged user not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Logged user not found"));
 
         if(userLogado.getRole() != Role.MANAGER) {
-            throw new RuntimeException("Only managers can create sellers");
+            throw new BusinessException("Only managers can create sellers");
         }
 
         Manager manager;
@@ -53,7 +55,7 @@ public class SellerService {
             manager = (Manager) userLogado;
         } else {
             manager = managerRepository.findById(userLogado.getId())
-                    .orElseThrow(() -> new RuntimeException("Critical: User has MANAGER role but is not in managers table. ID: "
+                    .orElseThrow(() -> new ResourceNotFoundException("Critical: User has MANAGER role but is not in managers table. ID: "
                             + userLogado.getId()));
         }
 
@@ -82,14 +84,14 @@ public class SellerService {
     //Buscar vendedor por ID
     public SellerResponseDTO getSellerById(Long id) {
         Seller seller = sellerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Seller not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Seller not found"));
         return sellerMapper.toDTO(seller);
     }
 
     @Transactional
     public SellerResponseDTO updateSeller(Long id, SellerUpdateDTO dto) {
         Seller seller = sellerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Seller not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Seller not found"));
 
         if (dto.name() != null && !dto.name().isBlank()) {
             seller.setName(dto.name());
@@ -115,7 +117,7 @@ public class SellerService {
     @Transactional
     public void deleteSeller(Long id) {
         Seller seller = sellerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Seller not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Seller not found"));
 
         seller.setActive(false);
         sellerRepository.save(seller);

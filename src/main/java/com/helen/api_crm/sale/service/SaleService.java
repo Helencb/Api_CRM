@@ -12,7 +12,6 @@ import com.helen.api_crm.sale.model.SaleStatus;
 import com.helen.api_crm.sale.repository.SaleRepository;
 import com.helen.api_crm.seller.model.Seller;
 import com.helen.api_crm.seller.repository.SellerRepository;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,29 +42,20 @@ public class SaleService {
     // Criar venda
     @Transactional
     public SaleResponseDTO createSale (SaleRequestDTO dto) {
-        // Buscar Cliente
         Client client = clientRepository.findById(dto.getClientId())
                 .orElseThrow(() -> new ResourceNotFoundException("Client not found with id: " + dto.getClientId()));
 
-        //Buscar Vendedor
         Seller seller = sellerRepository.findById(dto.getSellerId())
                 .orElseThrow(() -> new ResourceNotFoundException("Seller not found with id: " + dto.getSellerId()));
 
         LocalDateTime now = LocalDateTime.now();
-
-        //Converter DTO -> Entity usando Mapper
         Sale sale = saleMapper.toEntity(dto, client, seller, now);
-
         sale.setStatus(SaleStatus.PENDING);
 
-        // Salvar no banco
         Sale savedSale = saleRepository.save(sale);
-
-        //Converter Entity -> DTO de resposta
         return saleMapper.toDTO(savedSale);
     }
 
-    // Listar todas as vendas
     @Transactional(readOnly = true)
     public List<SaleResponseDTO> getAllSales() {
         return saleRepository.findAll()
@@ -74,30 +64,13 @@ public class SaleService {
                 .collect(Collectors.toList());
     }
 
-    // Buscar venda por ID
     @Transactional(readOnly = true)
     public SaleResponseDTO getSaleById(Long id) {
         Sale sale = saleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Sale not found with id: " + id));
-
-        String emailLogado = SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getName();
-        boolean isManager = SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getAuthorities()
-                .stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_MANAGER"));
-        if (!isManager && !sale.getSeller().getEmail().equals(emailLogado)) {
-            throw new BusinessException("Access denied");
-        }
-
         return saleMapper.toDTO(sale);
     }
 
-    // Concluir Venda
     @Transactional
     public SaleResponseDTO completeSale(Long id) {
 
@@ -120,7 +93,7 @@ public class SaleService {
         return saleMapper.toDTO(savedSale);
     }
 
-    //Cancelar Venda
+
     @Transactional
     public SaleResponseDTO cancelSale(Long id, String failureReason) {
         Sale sale = saleRepository.findById(id)
@@ -137,7 +110,6 @@ public class SaleService {
         sale.setFailureReason(failureReason);
 
         Sale savedSale = saleRepository.save(sale);
-
         return saleMapper.toDTO(savedSale);
     }
 }
