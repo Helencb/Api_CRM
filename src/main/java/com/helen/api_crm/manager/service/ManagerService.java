@@ -3,7 +3,7 @@ package com.helen.api_crm.manager.service;
 import com.helen.api_crm.auth.repository.UserRepository;
 import com.helen.api_crm.common.enums.Role;
 import com.helen.api_crm.exception.BusinessException;
-import com.helen.api_crm.exception.ManagerNotFoundException;
+import com.helen.api_crm.exception.ResourceNotFoundException;
 import com.helen.api_crm.manager.dto.ManagerRequestDTO;
 import com.helen.api_crm.manager.dto.ManagerResponseDTO;
 import com.helen.api_crm.manager.mapper.ManagerMapper;
@@ -51,14 +51,14 @@ public class ManagerService {
 
     public ManagerResponseDTO findById(Long id) {
         Manager manager = managerRepository.findById(id)
-                .orElseThrow(() -> new ManagerNotFoundException("Manager not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Manager not found"));
         return managerMapper.toDTO(manager);
     }
 
     @Transactional
     public ManagerResponseDTO updateManager(Long id, ManagerRequestDTO dto) {
         Manager manager = managerRepository.findById(id)
-                .orElseThrow(() -> new ManagerNotFoundException("Manager not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Manager not found"));
         if (dto.name() != null && !dto.name().isBlank()) {
             manager.setName(dto.name());
         }
@@ -78,7 +78,7 @@ public class ManagerService {
     @Transactional
     public void deactivate(Long id) {
         Manager manager = managerRepository.findById(id)
-                .orElseThrow(() -> new ManagerNotFoundException("Manager not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Manager not found"));
 
         manager.setActive(false);
         managerRepository.save(manager);
