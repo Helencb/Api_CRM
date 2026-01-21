@@ -118,7 +118,6 @@ public class SellerService {
     public void deleteSeller(Long id) {
         Seller seller = sellerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Seller not found"));
-
         seller.setActive(false);
         sellerRepository.save(seller);
     }

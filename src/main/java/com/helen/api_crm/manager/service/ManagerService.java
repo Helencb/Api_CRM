@@ -3,18 +3,16 @@ package com.helen.api_crm.manager.service;
 import com.helen.api_crm.auth.repository.UserRepository;
 import com.helen.api_crm.common.enums.Role;
 import com.helen.api_crm.exception.BusinessException;
-import com.helen.api_crm.exception.ResourceNotFoundException;
+import com.helen.api_crm.exception.ManagerNotFoundException;
 import com.helen.api_crm.manager.dto.ManagerRequestDTO;
 import com.helen.api_crm.manager.dto.ManagerResponseDTO;
 import com.helen.api_crm.manager.mapper.ManagerMapper;
 import com.helen.api_crm.manager.model.Manager;
 import com.helen.api_crm.manager.repository.ManagerRepository;
-
-import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -27,7 +25,7 @@ public class ManagerService {
     private final ManagerMapper managerMapper;
     private final UserRepository userRepository;
 
-    public ManagerResponseDTO createManager(@RequestBody @Valid ManagerRequestDTO dto) {
+    public ManagerResponseDTO createManager(ManagerRequestDTO dto) {
         if (userRepository.existsByEmail(dto.email())) {
             throw new BusinessException("E-mail já cadastrado no sistema.");
         }
@@ -53,13 +51,34 @@ public class ManagerService {
 
     public ManagerResponseDTO findById(Long id) {
         Manager manager = managerRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Manager not found"));
+                .orElseThrow(() -> new ManagerNotFoundException("Manager not found"));
         return managerMapper.toDTO(manager);
     }
 
+    @Transactional
+    public ManagerResponseDTO updateManager(Long id, ManagerRequestDTO dto) {
+        Manager manager = managerRepository.findById(id)
+                .orElseThrow(() -> new ManagerNotFoundException("Manager not found"));
+        if (dto.name() != null && !dto.name().isBlank()) {
+            manager.setName(dto.name());
+        }
+        if(dto.email() != null && !dto.email().isBlank() && !dto.email().equals(manager.getEmail())) {
+            if (userRepository.existsByEmail(dto.email())) {
+                throw new BusinessException("E-mail já está em uso por outro usuário.");
+            }
+            manager.setEmail(dto.email());
+        }
+
+        if (dto.password() != null && !dto.password().isBlank()) {
+            manager.setPassword(passwordEncoder.encode(dto.password()));
+        }
+        return managerMapper.toDTO(managerRepository.save(manager));
+    }
+
+    @Transactional
     public void deactivate(Long id) {
         Manager manager = managerRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Manager not found"));
+                .orElseThrow(() -> new ManagerNotFoundException("Manager not found"));
 
         manager.setActive(false);
         managerRepository.save(manager);

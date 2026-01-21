@@ -2,7 +2,6 @@ package com.helen.api_crm.dashboard.service;
 
 import com.helen.api_crm.clients.repository.ClientRepository;
 import com.helen.api_crm.dashboard.dto.DashboardSummaryDTO;
-import com.helen.api_crm.sale.mapper.SaleMapper;
 import com.helen.api_crm.sale.repository.SaleRepository;
 import com.helen.api_crm.seller.repository.SellerRepository;
 import org.junit.jupiter.api.Test;
@@ -28,9 +27,6 @@ public class DashboardServiceTest {
 
         @Mock
         private SaleRepository saleRepository;
-
-        @Mock
-        private SaleMapper saleMapper;
 
         @Test
         void shouldReturnDashboardSummary() {

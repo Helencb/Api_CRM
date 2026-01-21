@@ -1,10 +1,11 @@
 package com.helen.api_crm.dashboard.controller;
 
-import com.helen.api_crm.dashboard.dto.DashboardSellerDTO;
 import com.helen.api_crm.dashboard.dto.DashboardSummaryDTO;
 import com.helen.api_crm.dashboard.dto.SellerDashboardResponseDTO;
 import com.helen.api_crm.dashboard.service.DashboardService;
 import com.helen.api_crm.dashboard.service.SellerDashboardService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/dashboard")
+@Tag(name = "Dashboard", description = "Métricas e indicadores de desempenho.")
 public class DashboardController {
 
     private final DashboardService dashboardService;
@@ -25,23 +27,18 @@ public class DashboardController {
         this.sellerDashboardService = sellerDashboardService;
     }
 
-    @GetMapping("/summary")
+    @Operation(summary = "Resumo Global da Empresa", description = "Exibe totais de vendas e receita de toda a empresa. Apenas para Gerentes.")
+    @GetMapping("/company-summary")
     @PreAuthorize("hasAnyRole('MANAGER')")
-    public ResponseEntity<DashboardSummaryDTO> getSummary() {
-        DashboardSummaryDTO summary = dashboardService.getSummary();
-        return ResponseEntity.ok(summary);
+    public ResponseEntity<DashboardSummaryDTO> getCompanySummary() {
+        return ResponseEntity.ok(dashboardService.getSummary());
     }
 
-    @GetMapping("/seller/summary/{sellerId}")
-    @PreAuthorize("hasAnyRole('MANAGER')")
-    public ResponseEntity<DashboardSellerDTO> getDashboardBySeller(@PathVariable Long sellerId) {
-        DashboardSellerDTO dashboard = dashboardService.getDashboardBySeller(sellerId);
-        return ResponseEntity.ok(dashboard);
-    }
-
-    @GetMapping("/seller/dashboard/{sellerId}")
-    @PreAuthorize("hasAnyRole('MANAGER','SELLER')")
+    @Operation(summary = "Dashboard do vendedor", description = "Métricas detalhadas de um vendedor. Gerentes podem ver qualquer um. Vendedores veem apenas o seu.")
+    @GetMapping("/seller/{sellerId}")
+    @PreAuthorize("@authorizationService.isSellerOwner(#sellerId, authentication)")
     public ResponseEntity<SellerDashboardResponseDTO> getSellerDashboard(@PathVariable Long sellerId) {
-        return ResponseEntity.ok(sellerDashboardService.getDashboard(sellerId));
+        SellerDashboardResponseDTO dashboard = sellerDashboardService.getDashboard(sellerId);
+        return ResponseEntity.ok(dashboard);
     }
 }

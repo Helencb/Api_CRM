@@ -1,7 +1,10 @@
 package com.helen.api_crm.sale.service;
 
+import com.helen.api_crm.auth.model.User;
+import com.helen.api_crm.auth.repository.UserRepository;
 import com.helen.api_crm.clients.model.Client;
 import com.helen.api_crm.clients.repository.ClientRepository;
+import com.helen.api_crm.common.enums.Role;
 import com.helen.api_crm.exception.BusinessException;
 import com.helen.api_crm.exception.ResourceNotFoundException;
 import com.helen.api_crm.sale.mapper.SaleMapper;
@@ -12,15 +15,13 @@ import com.helen.api_crm.sale.model.SaleStatus;
 import com.helen.api_crm.sale.repository.SaleRepository;
 import com.helen.api_crm.seller.model.Seller;
 import com.helen.api_crm.seller.repository.SellerRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-
-
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class SaleService {
@@ -32,18 +33,29 @@ public class SaleService {
     private final SellerRepository sellerRepository;
 
     private final SaleMapper saleMapper;
+    private final UserRepository userRepository;
 
-    public SaleService(SaleRepository saleRepository, ClientRepository clientRepository, SellerRepository sellerRepository, SaleMapper saleMapper) {
+    public SaleService(SaleRepository saleRepository, ClientRepository clientRepository, SellerRepository sellerRepository, SaleMapper saleMapper, UserRepository userRepository) {
         this.saleRepository = saleRepository;
         this.clientRepository = clientRepository;
         this.sellerRepository = sellerRepository;
         this.saleMapper = saleMapper;
+        this.userRepository = userRepository;
     }
-    // Criar venda
+
     @Transactional
     public SaleResponseDTO createSale (SaleRequestDTO dto) {
         Client client = clientRepository.findById(dto.getClientId())
                 .orElseThrow(() -> new ResourceNotFoundException("Client not found with id: " + dto.getClientId()));
+
+        String emailLogado = SecurityContextHolder.getContext().getAuthentication().getName();
+        User userLogado = userRepository.findByEmail(emailLogado)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + emailLogado));
+        if(userLogado.getRole() == Role.SELLER) {
+            if (!userLogado.getId().equals(dto.getSellerId())) {
+                throw new BusinessException("Sellers can only create sales for themselves.");
+            }
+        }
 
         Seller seller = sellerRepository.findById(dto.getSellerId())
                 .orElseThrow(() -> new ResourceNotFoundException("Seller not found with id: " + dto.getSellerId()));
@@ -57,11 +69,15 @@ public class SaleService {
     }
 
     @Transactional(readOnly = true)
-    public List<SaleResponseDTO> getAllSales() {
-        return saleRepository.findAll()
-                .stream()
-                .map(saleMapper::toDTO)
-                .collect(Collectors.toList());
+    public Page<SaleResponseDTO> getAllSales(Pageable pageable) {
+        String emailLogado = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(emailLogado)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + emailLogado));
+        if (user.getRole() == Role.MANAGER) {
+            return saleRepository.findAll(pageable).map(saleMapper::toDTO);
+        } else {
+            return saleRepository.findBySellerId(user.getId(), pageable).map(saleMapper::toDTO);
+        }
     }
 
     @Transactional(readOnly = true)
