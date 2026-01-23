@@ -5,7 +5,6 @@ import com.helen.api_crm.clients.dto.ClientResponseDTO;
 import com.helen.api_crm.clients.mapper.ClientMapper;
 import com.helen.api_crm.clients.model.Client;
 import com.helen.api_crm.clients.repository.ClientRepository;
-import com.helen.api_crm.exception.BusinessException;
 import com.helen.api_crm.exception.ClientNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,21 +32,20 @@ public class ClientService {
 
     @Transactional(readOnly = true)
     public Page<ClientResponseDTO> getAllClients(Pageable pageable) {
-        return clientRepository.findAll(pageable)
+        return clientRepository.findAllByActiveTrue(pageable)
                 .map(clientMapper::toDTO);
     }
 
     @Transactional(readOnly = true)
     public ClientResponseDTO getClientById(Long id) {
-        Client client = clientRepository.findById(id)
+        Client client = clientRepository.findByIdAndActiveTrue(id)
                 .orElseThrow(() -> new ClientNotFoundException("Client not found"));
-
         return clientMapper.toDTO(client);
     }
 
     @Transactional
     public ClientResponseDTO updateClient(Long id, ClientRequestDTO dto) {
-        Client client = clientRepository.findById(id)
+        Client client = clientRepository.findByIdAndActiveTrue(id)
                 .orElseThrow(() -> new ClientNotFoundException("Client not found"));
 
         client.setName(dto.getName());
@@ -59,14 +57,10 @@ public class ClientService {
 
     @Transactional
     public void deleteClient(Long id) {
-        Client client = clientRepository.findById(id)
+        Client client = clientRepository.findByIdAndActiveTrue(id)
                 .orElseThrow(() -> new ClientNotFoundException("Client not found"));
-
-        if (client.getSales() != null && !client.getSales().isEmpty()) {
-            throw new BusinessException("Cannot delete with associated sales. Please delete sales first");
-        }
-
-        clientRepository.delete(client);
+        client.setActive(false);
+        clientRepository.save(client);
     }
 }
 

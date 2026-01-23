@@ -29,6 +29,9 @@ public class Client {
 
     private String phone;
 
+    @Column(nullable = false)
+    private  boolean active = true;
+
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
     private List<Sale> sales;
 }

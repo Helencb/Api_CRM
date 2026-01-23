@@ -11,6 +11,7 @@ public interface ClientMapper {
 
     @Mapping(target = "id", ignore = true)      // ID é gerado pelo banco
     @Mapping(target = "sales", ignore = true)
+    @Mapping(target = "active", constant = "true")
     Client toEntity(ClientRequestDTO dto);
 
     ClientResponseDTO toDTO(Client client);

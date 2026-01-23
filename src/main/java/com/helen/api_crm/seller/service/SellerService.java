@@ -1,7 +1,6 @@
 package com.helen.api_crm.seller.service;
 
 import com.helen.api_crm.auth.repository.UserRepository;
-import com.helen.api_crm.auth.model.User;
 import com.helen.api_crm.common.enums.Role;
 import com.helen.api_crm.exception.BusinessException;
 import com.helen.api_crm.exception.ResourceNotFoundException;
@@ -31,35 +30,24 @@ public class SellerService {
     private final UserRepository userRepository;
     private final ManagerRepository managerRepository;
 
-    //Criar vendedor
     @Transactional
     public SellerResponseDTO createSeller(SellerRequestDTO dto) {
-        // Validar se email já existe
         if(userRepository.existsByEmail(dto.email())) {
             throw new BusinessException("Email already in use");
         }
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        String emailLogado = authentication.getName();
 
-        // Obter o email do usuario logado (token)
-        String emailLogado = SecurityContextHolder.getContext().getAuthentication().getName();
+        boolean isManager = authentication.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_MANAGER"));
 
-        //Buscar o usuario base para pegar o ID e validar a Role
-        User userLogado = userRepository.findByEmail(emailLogado)
-                .orElseThrow(() -> new ResourceNotFoundException("Logged user not found"));
-
-        if(userLogado.getRole() != Role.MANAGER) {
+        if (!isManager) {
             throw new BusinessException("Only managers can create sellers");
         }
 
-        Manager manager;
-        if (userLogado instanceof Manager) {
-            manager = (Manager) userLogado;
-        } else {
-            manager = managerRepository.findById(userLogado.getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Critical: User has MANAGER role but is not in managers table. ID: "
-                            + userLogado.getId()));
-        }
+        Manager manager = managerRepository.findByEmail(emailLogado)
+                    .orElseThrow(() -> new ResourceNotFoundException("Logged Manager not found in database"));
 
-        // Criar o User para autentificação
         Seller seller = new Seller();
         seller.setName(dto.name());
         seller.setEmail(dto.email());
@@ -73,7 +61,6 @@ public class SellerService {
         return sellerMapper.toDTO(seller);
     }
 
-    //Listar todos os vendedores
     public List<SellerResponseDTO> getAllSellers() {
         return sellerRepository.findAllByActiveTrue()
                 .stream()
@@ -81,7 +68,6 @@ public class SellerService {
                 .toList();
     }
 
-    //Buscar vendedor por ID
     public SellerResponseDTO getSellerById(Long id) {
         Seller seller = sellerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Seller not found"));
@@ -103,7 +89,7 @@ public class SellerService {
 
         if (dto.email() != null && !dto.email().isBlank() && !dto.email().equals(seller.getEmail())) {
             if (userRepository.existsByEmail(dto.email())) {
-                throw new RuntimeException("Email already in use");
+                throw new BusinessException("Email already in use");
             }
             seller.setEmail(dto.email());
         }

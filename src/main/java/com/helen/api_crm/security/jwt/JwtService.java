@@ -32,9 +32,19 @@ public class JwtService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    // Extrair Username
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
+    }
+
+    public Long extractUserId(String token) {
+        return extractClaim(token, claims -> {
+            Number userId = (Number) claims.get("userId");
+            return userId.longValue();
+        });
+    }
+
+    public String extractRole(String token) {
+        return extractClaim(token, claims -> (String) claims.get("role"));
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
@@ -46,7 +56,6 @@ public class JwtService {
         return generateToken(new HashMap<>(), username);
     }
 
-    // Gera um token JWT a partir do username
     public String generateToken(Map<String, Object> extraClaims, String username) {
         return Jwts.builder()
                 .setClaims(extraClaims)
@@ -70,7 +79,6 @@ public class JwtService {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    // Método interno que decodifica o token
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSignInKey())

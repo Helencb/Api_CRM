@@ -1,7 +1,5 @@
 package com.helen.api_crm.sale.service;
 
-import com.helen.api_crm.auth.model.User;
-import com.helen.api_crm.auth.repository.UserRepository;
 import com.helen.api_crm.clients.model.Client;
 import com.helen.api_crm.clients.repository.ClientRepository;
 import com.helen.api_crm.common.enums.Role;
@@ -13,6 +11,7 @@ import com.helen.api_crm.sale.dto.SaleResponseDTO;
 import com.helen.api_crm.sale.model.Sale;
 import com.helen.api_crm.sale.model.SaleStatus;
 import com.helen.api_crm.sale.repository.SaleRepository;
+import com.helen.api_crm.security.model.SecurityUser;
 import com.helen.api_crm.seller.model.Seller;
 import com.helen.api_crm.seller.repository.SellerRepository;
 import org.springframework.data.domain.Page;
@@ -33,14 +32,13 @@ public class SaleService {
     private final SellerRepository sellerRepository;
 
     private final SaleMapper saleMapper;
-    private final UserRepository userRepository;
 
-    public SaleService(SaleRepository saleRepository, ClientRepository clientRepository, SellerRepository sellerRepository, SaleMapper saleMapper, UserRepository userRepository) {
+    public SaleService(SaleRepository saleRepository, ClientRepository clientRepository, SellerRepository sellerRepository, SaleMapper saleMapper) {
         this.saleRepository = saleRepository;
         this.clientRepository = clientRepository;
         this.sellerRepository = sellerRepository;
         this.saleMapper = saleMapper;
-        this.userRepository = userRepository;
+
     }
 
     @Transactional
@@ -48,9 +46,8 @@ public class SaleService {
         Client client = clientRepository.findById(dto.getClientId())
                 .orElseThrow(() -> new ResourceNotFoundException("Client not found with id: " + dto.getClientId()));
 
-        String emailLogado = SecurityContextHolder.getContext().getAuthentication().getName();
-        User userLogado = userRepository.findByEmail(emailLogado)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + emailLogado));
+        SecurityUser userLogado = (SecurityUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
         if(userLogado.getRole() == Role.SELLER) {
             if (!userLogado.getId().equals(dto.getSellerId())) {
                 throw new BusinessException("Sellers can only create sales for themselves.");
@@ -70,13 +67,12 @@ public class SaleService {
 
     @Transactional(readOnly = true)
     public Page<SaleResponseDTO> getAllSales(Pageable pageable) {
-        String emailLogado = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByEmail(emailLogado)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + emailLogado));
-        if (user.getRole() == Role.MANAGER) {
+        SecurityUser userLogado = (SecurityUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (userLogado.getRole() == Role.MANAGER) {
             return saleRepository.findAll(pageable).map(saleMapper::toDTO);
         } else {
-            return saleRepository.findBySellerId(user.getId(), pageable).map(saleMapper::toDTO);
+            return saleRepository.findBySellerId(userLogado.getId(), pageable).map(saleMapper::toDTO);
         }
     }
 
@@ -89,7 +85,6 @@ public class SaleService {
 
     @Transactional
     public SaleResponseDTO completeSale(Long id) {
-
         Sale sale = saleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Sale not found with id: " + id));
 
@@ -105,7 +100,6 @@ public class SaleService {
         sale.setFailureReason(null);
 
         Sale savedSale = saleRepository.save(sale);
-
         return saleMapper.toDTO(savedSale);
     }
 
