@@ -59,7 +59,7 @@ public class ClientController {
     @Operation(summary = "Atualiza o cliente", description = "Retorna um cliente específico para atualizar.")
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('MANAGER', 'SELLER')")
-    public ResponseEntity<ClientResponseDTO> updateClient(@PathVariable @Valid Long id, @RequestBody ClientRequestDTO dto) {
+    public ResponseEntity<ClientResponseDTO> updateClient(@PathVariable Long id, @RequestBody  @Valid ClientRequestDTO dto) {
         return ResponseEntity.ok(clientService.updateClient(id, dto));
     }
 

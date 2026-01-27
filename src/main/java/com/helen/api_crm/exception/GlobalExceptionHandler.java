@@ -34,11 +34,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGeneric(Exception ex) {
         ApiError error = new ApiError(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                HttpStatus.INTERNAL_SERVER_ERROR.name(),
+                HttpStatus.I_AM_A_TEAPOT.value(),
+                HttpStatus.I_AM_A_TEAPOT.name(),
                 "Internal server error"
         );
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        return ResponseEntity.status(HttpStatus.I_AM_A_TEAPOT).body(error);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

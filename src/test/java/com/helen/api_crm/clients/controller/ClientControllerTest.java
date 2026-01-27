@@ -2,8 +2,6 @@ package com.helen.api_crm.clients.controller;
 
 import com.helen.api_crm.clients.dto.ClientResponseDTO;
 import com.helen.api_crm.clients.service.ClientService;
-import com.helen.api_crm.security.jwt.JwtFilter;
-import com.helen.api_crm.security.jwt.JwtService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -32,17 +30,10 @@ public class ClientControllerTest {
     @MockBean
     private ClientService clientService;
 
-    @MockBean
-    JwtService jwtService;
-
-    @MockBean
-    JwtFilter jwtFilter;
-
-    //Teste para criar clientes
     @Test
     void shouldCreateClient() throws Exception {
         ClientResponseDTO response =
-                new ClientResponseDTO(1L, "Helen", "helen@crm.com", "18996067534");
+                new ClientResponseDTO(1L, "Helen", "helen@crm.com", "18996067534", 1L, "Seller Name");
 
         when(clientService.createClient(any()))
                 .thenReturn(response);
@@ -57,12 +48,12 @@ public class ClientControllerTest {
                 .andExpect(jsonPath("$.phone").value("18996067534"));
     }
 
-    // Teste para listar todos os clientes
+
     @Test
     void shouldGetAllClients() throws Exception {
         List<ClientResponseDTO> clientsList = List.of(
-                new ClientResponseDTO(1L, "Helen", "helen@crm.com", "18996067534"),
-                new ClientResponseDTO(2L, "Adam", "adam@crm.com", "18999999999")
+                new ClientResponseDTO(1L, "Helen", "helen@crm.com", "18996067534", 10L, "Seller Name"),
+                new ClientResponseDTO(2L, "Adam", "adam@crm.com", "18999999999", 10L, "Seller Name")
         );
 
         Page<ClientResponseDTO> clientPage = new PageImpl<>(clientsList);
@@ -83,7 +74,7 @@ public class ClientControllerTest {
     @Test
     void shouldGetClientById() throws Exception {
         ClientResponseDTO response =
-                new ClientResponseDTO(1L, "Helen", "helen@crm.com", "18996067534");
+                new ClientResponseDTO(1L, "Helen", "helen@crm.com", "18996067534", 1L, "Seller Name");
         when(clientService.getClientById(1L)).thenReturn(response);
         mockMvc.perform(get("/api/clients/1")
                 .contentType(MediaType.APPLICATION_JSON))

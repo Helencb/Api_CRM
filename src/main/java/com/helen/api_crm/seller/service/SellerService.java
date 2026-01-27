@@ -52,6 +52,7 @@ public class SellerService {
         seller.setName(dto.name());
         seller.setEmail(dto.email());
         seller.setPassword(passwordEncoder.encode(dto.password()));
+        seller.setPhone(dto.phone());
         seller.setRole(Role.SELLER);
         seller.setActive(true);
         seller.setManager(manager);

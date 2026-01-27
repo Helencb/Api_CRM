@@ -1,6 +1,7 @@
 package com.helen.api_crm.clients.model;
 
 import com.helen.api_crm.sale.model.Sale;
+import com.helen.api_crm.seller.model.Seller;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.*;
@@ -31,6 +32,10 @@ public class Client {
 
     @Column(nullable = false)
     private  boolean active = true;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seller_id", nullable = false)
+    private Seller seller;
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
     private List<Sale> sales;

@@ -18,6 +18,8 @@ public class ClientRequestDTO {
     @NotBlank(message = "Email is mandatory")
     private String email;
 
-    @NotBlank(message = "Telephone is mandatory")
+    @NotBlank(message = "Phone is mandatory")
     private String phone;
+
+    private Long sellerId;
 }

@@ -15,5 +15,6 @@ public class ClientResponseDTO {
     private String name;
     private String email;
     private String phone;
-
+    private Long sellerId;
+    private String sellerName;
 }

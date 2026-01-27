@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +24,21 @@ public class JwtService {
 
     @Value("${api.security.token.expiration:36000000}")
     private long expiration;
+
+    @PostConstruct
+    public void init() {
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException("A propriedade 'api.security.token.secret' não está configurada.");
+        }
+        try {
+            byte[] keyBytes = Decoders.BASE64.decode(secret);
+            if (keyBytes.length < 32) { // 32 bytes = 256 bits
+                throw new IllegalStateException("A chave JWT secreta é muito curta. Deve ter pelo menos 256 bits (32 bytes) codificados em Base64.");
+            }
+        } catch (IllegalArgumentException e) {
+            throw new IllegalStateException("A chave JWT secreta não é uma string Base64 válida.", e);
+        }
+    }
 
     private Key getSignInKey() {
         if (secret == null || secret.length() < 32) {
