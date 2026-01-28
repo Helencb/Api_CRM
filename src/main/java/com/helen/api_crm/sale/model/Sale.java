@@ -7,6 +7,8 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Setter
 @Getter
@@ -20,40 +22,38 @@ public class Sale {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Nome da venda ou do produto/serviço vendido
-    @Column(nullable = false)
-    private String name;
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal subtotal;
 
-    // Valor monetário da venda
+    @Column(precision = 10, scale = 2)
+    private BigDecimal discount;
+
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal totalValue;
 
-    // Status da venda (ex: PENDING, COMPLETED, CANCELED)
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private SaleStatus status;
 
-    // Motivo da falha (caso a venda não tenha sido concluída)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PaymentMethod paymentMethod;
+
     private String failureReason;
 
-    // Muitas vendas podem pertencer a um cliente
     @ManyToOne
     @JoinColumn(name = "client_id", nullable = false)
     private Client client;
 
-    // Muitas vendas podem pertencer a um vendedor
     @ManyToOne
     @JoinColumn(name = "seller_id", nullable = false)
     private Seller seller;
 
-    // Quantidade vendida (ex: número de itens)
-    @Column(nullable = false)
-    private Integer amount;
-
-    // Descrição adicional da venda
     private String description;
 
-    // Data e hora da venda
     @Column(nullable = false)
     private LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SaleItem> items = new ArrayList<>();
 }

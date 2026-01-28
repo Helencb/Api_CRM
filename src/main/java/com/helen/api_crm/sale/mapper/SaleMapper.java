@@ -1,43 +1,49 @@
 package com.helen.api_crm.sale.mapper;
 
 import com.helen.api_crm.clients.model.Client;
-import com.helen.api_crm.sale.dto.SaleRequestDTO;
 import com.helen.api_crm.sale.dto.SaleResponseDTO;
 import com.helen.api_crm.sale.model.Sale;
+import com.helen.api_crm.sale.model.SaleItem;
 import com.helen.api_crm.seller.model.Seller;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.ReportingPolicy;
+import org.mapstruct.Named;
+import java.util.List;
+import java.util.stream.Collectors;
 
-import java.time.LocalDateTime;
-
-@Mapper(componentModel = "spring", imports = {LocalDateTime.class}, unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = "spring")
 public interface SaleMapper {
 
-    // Converte DTO + Entidades carregadas do banco em uma nova Venda.
-    @Mapping(target = "id", ignore = true) //
-    @Mapping(target = "name", source = "dto.name")
-    @Mapping(target = "amount", source = "dto.amount")
-    @Mapping(target = "totalValue", source = "dto.totalValue")
-    @Mapping(target = "description", source = "dto.description")
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "subtotal", ignore = true)
+    @Mapping(target = "discount", ignore = true)
+    @Mapping(target = "totalValue", ignore = true)
+    @Mapping(target = "paymentMethod", ignore = true)
+    @Mapping(target = "description", ignore = true)
     @Mapping(target = "client", source = "client")
     @Mapping(target = "seller", source = "seller")
-    @Mapping(target = "createdAt", source = "createdAt")
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "items", ignore = true)
     @Mapping(target = "failureReason", ignore = true)
     @Mapping(target = "status", ignore = true)
-    Sale toEntity(SaleRequestDTO dto, Client client, Seller seller, LocalDateTime createdAt);
+    Sale toEntity(Client client, Seller seller);
 
-
-    // Converte a Venda para DTO de resposta.
     @Mapping(target = "clientId", source = "client.id")
+    @Mapping(target = "clientName", source = "client.name")
     @Mapping(target = "sellerId", source = "seller.id")
-    @Mapping(target = "id", source = "id")
-    @Mapping(target = "name", source = "name")
-    @Mapping(target = "amount", source = "amount")
-    @Mapping(target = "totalValue", source = "totalValue")
-    @Mapping(target = "description", source = "description")
-    @Mapping(target = "status", source = "status")
-    @Mapping(target = "failureReason", source = "failureReason")
-    @Mapping(target = "createdAt", source = "createdAt")
+    @Mapping(target = "sellerName", source = "seller.name")
+    @Mapping(target = "items", source = "items", qualifiedByName = "mapItems")
     SaleResponseDTO toDTO(Sale sale);
+
+    @Named("mapItems")
+    default List<SaleResponseDTO.SaleItemResponse> mapItems(List<SaleItem> items) {
+        if (items == null) return List.of();
+        return items.stream()
+                .map(item -> new SaleResponseDTO.SaleItemResponse(
+                        item.getProduct().getName(),
+                        item.getQuantity(),
+                        item.getUnitPrice(),
+                        item.getTotalPrice()))
+                .collect(Collectors.toList());
+    }
 }
