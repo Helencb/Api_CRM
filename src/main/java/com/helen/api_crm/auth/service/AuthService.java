@@ -37,14 +37,9 @@ public class AuthService {
     public LoginResponseDTO login(LoginRequestDTO dto) {
 
         User user = userRepository.findByEmail(dto.getEmail())
-                .orElseThrow(() -> new BusinessException("Login not found"));
-
-        if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
-            throw new BusinessException("Passwords don't match");
-        }
-
-        if (!user.isActive()) {
-            throw new BusinessException("User is inactive");
+                .orElseThrow(null);
+        if (user == null || !passwordEncoder.matches(dto.getPassword(), user.getPassword()) || !user.isActive()) {
+            throw new BusinessException("Invalid email or password");
         }
 
         refreshTokenService.deleteByUserId(user.getId());

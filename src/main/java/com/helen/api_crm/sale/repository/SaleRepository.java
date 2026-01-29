@@ -32,14 +32,12 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
             Where s.seller.id = :sellerId
             AND s.status = 'COMPLETED'
             """)
-
     BigDecimal sumTotalSales(@Param("sellerId") Long sellerId);
 
-
-    @EntityGraph(attributePaths =  {"client", "seller"})
+    @EntityGraph(attributePaths =  {"client", "seller", "items", "items.product"})
     Page<Sale> findAll(Pageable pageable);
 
-    @EntityGraph(attributePaths = {"client", "seller"})
+    @EntityGraph(attributePaths = {"client", "seller", "items", "items.product"})
     Page<Sale> findBySellerId(Long sellerId, Pageable pageable);
 
 }

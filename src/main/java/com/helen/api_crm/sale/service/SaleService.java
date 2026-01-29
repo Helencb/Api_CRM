@@ -46,19 +46,20 @@ public class SaleService {
     }
 
     @Transactional
-    public SaleResponseDTO createSale (SaleRequestDTO dto) {
+    public SaleResponseDTO createSale(SaleRequestDTO dto) {
         Client client = clientRepository.findById(dto.getClientId())
-                .orElseThrow(() -> new ResourceNotFoundException("Client not found with id: " + dto.getClientId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Client not found"));
 
         Seller seller = sellerRepository.findById(dto.getSellerId())
-                .orElseThrow(() -> new ResourceNotFoundException("Seller not found with id: " + dto.getSellerId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Seller not found"));
 
         SecurityUser userLogado = (SecurityUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        if(userLogado.getRole() == Role.SELLER && !userLogado.getId().equals(dto.getSellerId())) {
-            throw new BusinessException("Sellers can only create sales for themselves.");
+        if (userLogado.getRole() == Role.SELLER && !userLogado.getId().equals(dto.getSellerId())) {
+            throw new BusinessException("Access denied");
         }
-         Sale sale = saleMapper.toEntity(client, seller);
+
+        Sale sale = saleMapper.toEntity(client, seller);
         sale.setCreatedAt(LocalDateTime.now());
         sale.setStatus(SaleStatus.PENDING);
         sale.setDescription(dto.getDescription());
@@ -69,14 +70,14 @@ public class SaleService {
 
         for (SaleItemRequestDTO itemDto : dto.getItems()) {
             Product product = productRepository.findById(itemDto.getProductId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + itemDto.getProductId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
             if (!product.isActive()) {
-                throw new BusinessException("Product with id " + itemDto.getProductId() + " is inactive.");
+                throw new BusinessException("Product inactive");
             }
 
             if (product.getStockQuantity() < itemDto.getQuantity()) {
-                throw new BusinessException("Insufficient stock for product with id: " + itemDto.getProductId());
+                throw new BusinessException("Insufficient stock for: " + product.getName());
             }
 
             SaleItem saleItem = new SaleItem();
@@ -91,11 +92,6 @@ public class SaleService {
         }
 
         BigDecimal discount = dto.getDiscount() != null ? dto.getDiscount() : BigDecimal.ZERO;
-
-        if (discount.compareTo(subtotal) > 0) {
-            throw new BusinessException("Discount cannot be greater than the sale total.");
-        }
-
         BigDecimal finalValue = subtotal.subtract(discount);
 
         sale.setSubtotal(subtotal);
@@ -108,18 +104,16 @@ public class SaleService {
     @Transactional(readOnly = true)
     public Page<SaleResponseDTO> getAllSales(Pageable pageable) {
         SecurityUser userLogado = (SecurityUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
         if (userLogado.getRole() == Role.MANAGER) {
             return saleRepository.findAll(pageable).map(saleMapper::toDTO);
-        } else {
-            return saleRepository.findBySellerId(userLogado.getId(), pageable).map(saleMapper::toDTO);
         }
+        return saleRepository.findBySellerId(userLogado.getId(), pageable).map(saleMapper::toDTO);
     }
 
     @Transactional(readOnly = true)
     public SaleResponseDTO getSaleById(Long id) {
         Sale sale = saleRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Sale not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Sale not found"));
         return saleMapper.toDTO(sale);
     }
 
@@ -133,34 +127,39 @@ public class SaleService {
         }
 
         for (SaleItem item : sale.getItems()) {
-            Product product = item.getProduct();
+            Product product = productRepository.findByIdWithLock(item.getProduct().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Product not found during completion"));
+
             if (product.getStockQuantity() < item.getQuantity()) {
-                throw new BusinessException("Insufficient stock to complete sale for: " + product.getName());
+                throw new BusinessException("Insufficient stock to complete sale for product: " + product.getName());
             }
+
             product.setStockQuantity(product.getStockQuantity() - item.getQuantity());
             productRepository.save(product);
         }
-
         sale.setStatus(SaleStatus.COMPLETED);
         return saleMapper.toDTO(saleRepository.save(sale));
     }
 
-
     @Transactional
     public SaleResponseDTO cancelSale(Long id, String failureReason) {
         Sale sale = saleRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Sale not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Sale not found"));
 
         if (sale.getStatus() == SaleStatus.CANCELED){
-            throw new BusinessException("Sale is already canceled.");
+            throw new BusinessException("Already canceled");
         }
+
         if (sale.getStatus() == SaleStatus.COMPLETED) {
             for (SaleItem item : sale.getItems()) {
-                Product product = item.getProduct();
+                Product product = productRepository.findByIdWithLock(item.getProduct().getId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Product not found during cancellation"));
+
                 product.setStockQuantity(product.getStockQuantity() + item.getQuantity());
                 productRepository.save(product);
             }
         }
+
         sale.setStatus(SaleStatus.CANCELED);
         sale.setFailureReason(failureReason);
         return saleMapper.toDTO(saleRepository.save(sale));
