@@ -11,6 +11,8 @@ import com.helen.api_crm.refreshToken.dto.RefreshTokenResponseDTO;
 import com.helen.api_crm.refreshToken.model.RefreshToken;
 import com.helen.api_crm.refreshToken.service.RefreshTokenService;
 import com.helen.api_crm.security.jwt.JwtService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +27,8 @@ public class AuthService {
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
 
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
+
     public AuthService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
                        JwtService jwtService, RefreshTokenService refreshTokenService) {
@@ -38,7 +42,13 @@ public class AuthService {
 
         User user = userRepository.findByEmail(dto.getEmail())
                 .orElseThrow(null);
-        if (user == null || !passwordEncoder.matches(dto.getPassword(), user.getPassword()) || !user.isActive()) {
+        if (user == null || !passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
+            log.warn("Falha de login para o email: {}", dto.getEmail());
+            throw new BusinessException("Invalid email or password");
+        }
+
+        if (!user.isActive()) {
+            log.warn("Falha de login para o email: {}", dto.getEmail());
             throw new BusinessException("Invalid email or password");
         }
 

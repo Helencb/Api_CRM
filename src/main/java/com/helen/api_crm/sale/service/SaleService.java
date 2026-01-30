@@ -27,6 +27,7 @@ import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 
 @Service
 public class SaleService {
@@ -125,6 +126,8 @@ public class SaleService {
         if (sale.getStatus() != SaleStatus.PENDING) {
             throw new BusinessException("Only PENDING sales can be completed.");
         }
+
+        sale.getItems().sort(Comparator.comparing(i -> i.getProduct().getId()));
 
         for (SaleItem item : sale.getItems()) {
             Product product = productRepository.findByIdWithLock(item.getProduct().getId())
