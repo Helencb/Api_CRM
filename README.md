@@ -1,207 +1,222 @@
-# 🚀 CRM API — Sistema de Gestão de Relacionamento com Clientes
+# 🚀 CRM API — Sistema de Gestão de Vendas & Relacionamento
 
-![Java](https://img.shields.io/badge/Java-17-orange.svg)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.0-brightgreen.svg)
-![License](https://img.shields.io/badge/License-MIT-blue.svg)
+![Java](https://img.shields.io/badge/Java-17-orange?style=for-the-badge&logo=java)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2.0-brightgreen?style=for-the-badge&logo=spring)
+![Spring Security](https://img.shields.io/badge/Spring_Security-RBAC_JWT-red?style=for-the-badge&logo=springsecurity)
+![H2 Database](https://img.shields.io/badge/Database-H2_(In_Memory)-blue?style=for-the-badge&logo=h2)
+![Swagger](https://img.shields.io/badge/Docs-Swagger_UI-85ea2d?style=for-the-badge&logo=swagger)
 
-API RESTful robusta desenvolvida para **gestão de relacionamento com clientes (CRM)**, com foco em **segurança, organização, escalabilidade e boas práticas de engenharia de software**.
-
-O sistema gerencia **hierarquias entre Gerentes e Vendedores**, controla o **fluxo completo de Vendas** (criação, aprovação e cancelamento) e disponibiliza **métricas consolidadas em dashboards**, seguindo princípios como **SOLID, DRY e Clean Code**.
+Uma API RESTful robusta projetada para simular um ambiente corporativo de **Gestão de Relacionamento com Clientes (CRM)**. O projeto foca em padrões de arquitetura limpa, segurança avançada e integridade de dados transacionais.
 
 ---
 
-## 🧠 Visão Geral
+## ⚠️ Nota de Infraestrutura (Banco em Memória)
 
-- Arquitetura em camadas
-- Autenticação e autorização com **JWT**
-- Controle de acesso baseado em papéis (**RBAC**)
-- Regras de negócio bem definidas
-- Código testado e versionamento de banco automatizado
+> **IMPORTANTE:** Esta aplicação está configurada para rodar com **H2 Database em memória (`mem`)**.
+> 
+> *   **Volatilidade:** Todos os dados criados (clientes, vendas, usuários) serão perdidos ao reiniciar a aplicação.
+> *   **Bootstrapper:** Um usuário administrador padrão é recriado automaticamente a cada inicialização para garantir o acesso (veja [Credenciais](#-acesso-rápido-credenciais)).
+
+---
+
+## 🏛️ Arquitetura do Projeto
+
+O projeto segue uma arquitetura em camadas bem definida para garantir a separação de responsabilidades e facilidade de manutenção:
+
+```bash
+src/main/java/com/helen/api_crm
+├── 🔐 auth           # Autenticação, Login e Gestão de Usuários Base
+├── 👥 clients        # Gestão de Carteira de Clientes
+├── ⚙️ common         # Utilitários, Enums e Entidades Base (Audit)
+├── 📊 dashboard      # Agregação de dados para relatórios gerenciais
+├── ⚠️ exception      # Tratamento global de erros (ControllerAdvice)
+├── 👔 manager        # Regras específicas para Gerentes
+├── 📦 product        # Catálogo de Produtos e Estoque
+├── 🔄 refreshToken   # Lógica de renovação de sessão JWT
+├── 💰 sale           # Core do negócio: Fluxo de vendas e itens
+├── 🛡️ security       # Configurações do Spring Security, Filtros JWT e CORS
+└── 🧑‍💼 seller         # Regras específicas para Vendedores
+```
+
+### Destaques Técnicos
+*   **Concorrência Segura:** Utilização de `PESSIMISTIC_WRITE` (Lock de banco de dados) ao finalizar vendas. Isso impede que dois vendedores vendam o último item do estoque simultaneamente ("Overselling").
+*   **DTOs & Mappers:** Uso extensivo de **MapStruct** para conversão performática entre Entidades JPA e DTOs, evitando exposição do modelo de domínio.
+*   **Audit:** Entidades base (`BaseEntity`) registram automaticamente datas de criação e atualização.
 
 ---
 
 ## 🛠️ Stack Tecnológica
 
-- **Linguagem:** Java 17
-- **Framework:** Spring Boot 3.2
-- **Segurança:** Spring Security 6 + JWT
-- **Banco de Dados:** MariaDB / MySQL
-  > Compatível com PostgreSQL
-- **Migração de Banco:** Flyway
-- **ORM:** JPA / Hibernate
-- **Mapeamento:** MapStruct
-- **Testes:** JUnit 5 & Mockito
-- **Build:** Maven
-- **Documentação:** Swagger / OpenAPI *(previsto)*
+| Componente | Tecnologia | Uso |
+| :--- | :--- | :--- |
+| **Linguagem** | Java 17 | Core da aplicação |
+| **Framework** | Spring Boot 3.2 | Injeção de dependência e Web Server |
+| **Segurança** | Spring Security 6 | Autenticação e Autorização |
+| **Token** | JWT (JJWT) | Stateless Authentication |
+| **Banco de Dados** | H2 Database | Persistência em memória (Modo MySQL) |
+| **ORM** | Hibernate / JPA | Mapeamento Objeto-Relacional |
+| **Mapper** | MapStruct | Conversão Entidade <-> DTO |
+| **Docs** | SpringDoc OpenAPI | Documentação Swagger automática |
+| **Testes** | JUnit 5 & Mockito | Testes Unitários e de Integração |
 
 ---
 
-## ✨ Funcionalidades Principais
+## ✨ Funcionalidades e Regras de Negócio
 
-### 🔐 Autenticação & Segurança (RBAC)
+### 1. Hierarquia e Permissões (RBAC)
+O sistema possui dois níveis de acesso rígidos:
+*   **MANAGER (Gerente):**
+    *   Pode criar Vendedores.
+    *   Pode ver dashboard global (faturamento da empresa).
+    *   Pode finalizar ou cancelar vendas.
+    *   Pode reatribuir clientes.
+*   **SELLER (Vendedor):**
+    *   Pode cadastrar clientes (automaticamente vinculados a ele).
+    *   Pode ver apenas seus próprios clientes e vendas.
+    *   Pode criar pedidos de venda, mas não pode finalizá-los (apenas status `PENDING`).
 
-- Login com geração de **Token JWT**
-- Controle de acesso baseado em papéis:
-    - **MANAGER**
-        - Acesso total ao sistema
-        - Criação de vendedores
-        - Visualização de dashboards globais
-    - **SELLER**
-        - Acesso restrito aos seus próprios clientes e vendas
+### 2. Fluxo de Venda (Máquina de Estados)
+A venda passa por validações estritas de estoque e estado:
 
----
-
-### 👥 Gestão de Usuários
-
-- Cadastro de vendedores vinculados a um gerente
-- Gestão completa de clientes
-- Validação de permissões por perfil
-
----
-
-### 💰 Gestão de Vendas
-
-- Criação de vendas (**PENDING**)
-- Finalização de vendas (**COMPLETED**)
-- Cancelamento com motivo obrigatório (**CANCELED**)
-- Aplicação rigorosa de regras de negócio
-  > Ex: vendedor só pode visualizar suas próprias vendas
-
----
-
-### 📊 Dashboard & Analytics
-
-- Visão consolidada para gerentes:
-    - Total de vendas
-    - Receita
-    - Ticket médio
-- Desempenho individual por vendedor
+1.  **Criação (`POST /sales`):**
+    *   Status inicial: `PENDING`.
+    *   Valida se há estoque suficiente *no momento do pedido*.
+    *   Não baixa o estoque ainda (reserva lógica).
+2.  **Finalização (`PUT /sales/{id}/complete`):**
+    *   **Apenas Gerentes.**
+    *   Aplica **Lock Pessimista** no banco.
+    *   Revalida o estoque e efetua a baixa real.
+    *   Muda status para `COMPLETED`.
+3.  **Cancelamento (`PUT /sales/{id}/cancel`):**
+    *   **Apenas Gerentes.**
+    *   Exige motivo do cancelamento.
+    *   Se a venda já estava `COMPLETED`, o sistema **estorna automaticamente** a quantidade dos itens para o estoque.
 
 ---
 
-## 🏗️ Arquitetura & Padrões
+## 🚀 Guia de Instalação e Execução
 
-O projeto segue uma **arquitetura em camadas**, garantindo alta manutenibilidade e testabilidade:
+### Pré-requisitos
+*   Java JDK 17+
+*   Git
 
-- **Controller Layer**
-    - Endpoints REST
-    - Validação de entrada com `@Valid`
-- **Service Layer**
-    - Regras de negócio
-    - Controle transacional com `@Transactional`
-- **Repository Layer**
-    - Persistência com Spring Data JPA
-- **Mapper Layer**
-    - Conversão entre DTOs e Entidades com MapStruct
-- **Exception Handling**
-    - Tratamento global de erros
-    - Respostas padronizadas em JSON (`ApiError`)
+### Passo a Passo
+
+1.  **Clone o repositório:**
+    ```bash
+    git clone https://github.com/helen-cristina/api-crm.git
+    cd api-crm
+    ```
+
+2.  **Compile e Execute (Via Wrapper):**
+    *   *Linux/Mac:*
+        ```bash
+        ./mvnw clean spring-boot:run
+        ```
+    *   *Windows:*
+        ```cmd
+        mvnw.cmd clean spring-boot:run
+        ```
+
+3.  **Acesse a Aplicação:**
+    *   API Base: `http://localhost:8080`
+    *   Documentação Swagger: `http://localhost:8080/swagger-ui/index.html`
+    *   Console H2: `http://localhost:8080/h2-console`
 
 ---
 
-## 🚀 Como Executar o Projeto
+## 🔑 Acesso Rápido (Credenciais)
 
-### 📌 Pré-requisitos
+Ao iniciar, o sistema cria automaticamente um Super Usuário:
 
-- Java JDK 17+
-- Maven
-- MariaDB ou Docker
+| Role | Email | Senha |
+| :--- | :--- | :--- |
+| **MANAGER** | `admin@crm.com` | `admin` |
+
+> **Dica:** Utilize este usuário para criar vendedores e produtos iniciais via Swagger.
 
 ---
 
-### 1️⃣ Configuração do Banco de Dados
+## 📡 Exemplos de Uso (JSON)
 
-Crie o banco (ex: `crm_db`) e configure:
+### 1. Autenticação (Login)
+**POST** `/api/auth/login`
+```json
+{
+  "email": "admin@crm.com",
+  "password": "admin"
+}
+```
+*Copie o `token` da resposta para usar nos headers: `Authorization: Bearer <token>`.*
 
-```properties
-spring.datasource.url=jdbc:mariadb://localhost:3306/crm_db
-spring.datasource.username=seu_usuario
-spring.datasource.password=sua_senha
+### 2. Criar Produto (Gerente)
+**POST** `/api/products`
+```json
+{
+  "name": "Notebook Gamer",
+  "description": "i7 16GB RAM RTX 3060",
+  "price": 4500.00,
+  "stockQuantity": 10
+}
+```
+
+### 3. Criar Venda (Vendedor/Gerente)
+**POST** `/api/sales`
+```json
+{
+  "clientId": 1,
+  "sellerId": 1,
+  "description": "Venda de equipamento TI",
+  "paymentMethod": "CREDIT_CARD",
+  "discount": 100.00,
+  "items": [
+    {
+      "productId": 1,
+      "quantity": 2
+    }
+  ]
+}
 ```
 
 ---
 
-### 2️⃣ Configuração do JWT
+## ⚙️ Configuração (Environment Variables)
 
-- **Defina a chave secreta e o tempo de expiração do token no arquivo
-application.properties:**
+O arquivo `application.properties` está configurado com defaults seguros para desenvolvimento. Para customizar em tempo de execução:
 
-```properties 
-api.security.token.secret=SUA_CHAVE_SECRETA_BASE64_MUITO_LONGA
-api.security.token.expiration=36000000
+| Chave | Descrição | Default |
+| :--- | :--- | :--- |
+| `JWT_SECRET` | Chave de assinatura do Token (Base64) | *(Default interno)* |
+| `CORS_ALLOWED_ORIGINS` | Domains permitidos (Frontend) | `http://localhost:3000,*` |
+| `server.port` | Porta do servidor | `8080` |
+
+**Exemplo de execução customizada:**
+```bash
+java -jar target/api-crm.jar --server.port=9090 --JWT_SECRET=MinhaChaveSuperSecreta
 ```
-
-### 3️⃣ Compilar e Executar
-
-- **Execute os comandos abaixo no terminal:**
-
-```properties
-mvn clean install
-mvn spring-boot:run
-```
-
-### 📍 A API estará disponível em:
-
-```properties
-http://localhost:8080
-```
-
-
-## 📡 Endpoints Principais
-
-| Método | Endpoint                   | Descrição                         | Role |
-|--------|----------------------------|-----------------------------------|------|
-| POST   | `/api/auth/login`          | Autenticação e geração do JWT     | Público |
-| GET    | `/api/clients`             | Lista clientes                    | Auth |
-| POST   | `/api/sales`               | Cria nova venda                   | MANAGER, SELLER |
-| PUT    | `/api/sales/{id}/complete` | Finaliza venda                    | MANAGER |
-| POST   | `/api/sellers`             | Cria vendedor                     | MANAGER |
-| GET    | `/dashboard/summary`       | Dashboard consolidado             | MANAGER |
 
 ---
 
 ## 🧪 Testes
 
-- **O projeto possui testes unitários para Controllers e Services, garantindo a confiabilidade do código.**
+O projeto conta com cobertura de testes para os principais fluxos (Services e Controllers).
+
+Para executar a bateria de testes:
+```bash
+./mvnw test
+```
 
 ---
 
-- **Para executar os testes:**
+## 📄 Licença
 
-```properties
-mvn test
-```
----
-
-## 🤝 Contribuição
-
-### Contribuições são bem-vindas! 
-
-- **Faça um fork do projeto**
-
-
-- **Crie sua branch:**
-
-```properties
-git checkout -b feature/minha-feature
-```
-
-- **Commit suas mudanças:**
-
-```properties
-git commit -m "Minha nova feature"
-```
-
-- **Push para a branch:**
-```properties
-git push origin feature/minha-feature
-```
-
-- **Abra um Pull Request**
+Este projeto está sob a licença [MIT](LICENSE).
 
 ---
 
 ### 👩‍💻 Autora
 
-**Helen Cristina Batista
-Desenvolvedora Back-end Java**
+**Helen Cristina Batista**  
+*Desenvolvedora Back-end Java*
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/hcbatista/)
