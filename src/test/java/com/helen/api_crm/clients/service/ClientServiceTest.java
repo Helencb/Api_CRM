@@ -79,16 +79,19 @@ public class ClientServiceTest {
         ClientRequestDTO request = new ClientRequestDTO("Helen", "helen@crm.com", "123", 1L);
         Client client = new Client();
         client.setId(1L);
+        Seller seller = new Seller();
+        seller.setId(1L);
 
         when(clientRepository.findByEmail(request.getEmail())).thenReturn(Optional.empty()); // Email livre
         when(clientMapper.toEntity(request)).thenReturn(client);
+        when(sellerRepository.findById(1L)).thenReturn(Optional.of(seller)); // Manager deve indicar o vendedor
         when(clientRepository.save(client)).thenReturn(client);
         when(clientMapper.toDTO(client)).thenReturn(new ClientResponseDTO());
 
         clientService.createClient(request);
 
+        assertEquals(seller, client.getSeller());
         verify(clientRepository).save(client);
-        verify(sellerRepository, never()).findById(any()); // Manager não vincula vendedor automaticamente neste fluxo
     }
 
     @Test
@@ -108,7 +111,7 @@ public class ClientServiceTest {
 
         clientService.createClient(request);
 
-        verify(client).setSeller(seller);
+        assertEquals(seller, client.getSeller());
         verify(clientRepository).save(client);
     }
 
@@ -209,6 +212,9 @@ public class ClientServiceTest {
         Client existingClient = new Client();
         existingClient.setId(clientId);
         existingClient.setEmail("same@email.com"); // Email igual
+        Seller seller = new Seller();
+        seller.setId(1L);
+        existingClient.setSeller(seller); // Mesmo vendedor do request, não deve buscar de novo
 
         when(clientRepository.findByIdAndActiveTrue(clientId)).thenReturn(Optional.of(existingClient));
         when(clientRepository.save(existingClient)).thenReturn(existingClient);

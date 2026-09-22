@@ -14,11 +14,11 @@ import com.helen.api_crm.seller.model.Seller;
 import com.helen.api_crm.seller.repository.SellerRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -62,11 +62,9 @@ public class SellerService {
         return sellerMapper.toDTO(seller);
     }
 
-    public List<SellerResponseDTO> getAllSellers() {
-        return sellerRepository.findAllByActiveTrue()
-                .stream()
-                .map(sellerMapper::toDTO)
-                .toList();
+    public Page<SellerResponseDTO> getAllSellers(Pageable pageable) {
+        return sellerRepository.findAllByActiveTrue(pageable)
+                .map(sellerMapper::toDTO);
     }
 
     public SellerResponseDTO getSellerById(Long id) {

@@ -9,12 +9,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/sellers")
@@ -40,12 +42,13 @@ public class SellerController {
                 .body(sellerService.createSeller(dto));
     }
 
-    @Operation(summary = "Listar vendedores", description = "Retorna uma lista de vendedores.")
+    @Operation(summary = "Listar vendedores", description = "Retorna uma lista paginada de vendedores.")
     @PreAuthorize("hasRole('MANAGER')")
     @GetMapping
-    public ResponseEntity<List<SellerResponseDTO>> getAllSellers() {
-        List<SellerResponseDTO> sellers = sellerService.getAllSellers();
-        return ResponseEntity.ok(sellers);
+    public ResponseEntity<Page<SellerResponseDTO>> getAllSellers(
+            @PageableDefault(size = 10, sort = "name", direction = Sort.Direction.ASC)
+            Pageable pageable) {
+        return ResponseEntity.ok(sellerService.getAllSellers(pageable));
     }
 
     @Operation(summary = "Buscar vendedores por ID", description = "Retorna detalhes de um vendedores específico")

@@ -41,7 +41,7 @@ public class AuthService {
     public LoginResponseDTO login(LoginRequestDTO dto) {
 
         User user = userRepository.findByEmail(dto.getEmail())
-                .orElseThrow(null);
+                .orElse(null);
         if (user == null || !passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
             log.warn("Falha de login para o email: {}", dto.getEmail());
             throw new BusinessException("Invalid email or password");
@@ -59,11 +59,11 @@ public class AuthService {
         extraClaims.put("userId", user.getId());
         String token = jwtService.generateToken(extraClaims, user.getEmail());
 
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getEmail());
+        String refreshToken = refreshTokenService.createRefreshToken(user.getEmail());
 
         LoginResponseDTO response = new LoginResponseDTO();
         response.setToken(token);
-        response.setRefreshToken(refreshToken.getToken());
+        response.setRefreshToken(refreshToken);
         response.setRole(user.getRole().name());
         response.setName(user.getEmail());
 
@@ -71,17 +71,20 @@ public class AuthService {
     }
 
     public RefreshTokenResponseDTO refreshToken(RefreshTokenRequestDTO request) {
-        return java.util.Optional.of(refreshTokenService.findByToken(request.getRefreshToken()))
-                .map(refreshTokenService::verifyExpiration)
-                .map(RefreshToken::getUser)
-                .map(user -> {
-                    Map<String, Object> extraClaims = new HashMap<>();
-                    extraClaims.put("role", user.getRole().name());
-                    extraClaims.put("userId", user.getId());
-                    String token = jwtService.generateToken(extraClaims, user.getEmail());
+        RefreshToken storedToken = refreshTokenService.verifyExpiration(
+                refreshTokenService.findByToken(request.getRefreshToken()));
 
-                    return new RefreshTokenResponseDTO(token, request.getRefreshToken());
-                })
-                .orElseThrow(() -> new BusinessException("Refresh token is not in database!"));
+        var user = storedToken.getUser();
+
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("role", user.getRole().name());
+        extraClaims.put("userId", user.getId());
+        String token = jwtService.generateToken(extraClaims, user.getEmail());
+
+        // Rotate the refresh token on every use so a leaked token can only be replayed once.
+        refreshTokenService.deleteByUserId(user.getId());
+        String newRefreshToken = refreshTokenService.createRefreshToken(user.getEmail());
+
+        return new RefreshTokenResponseDTO(token, newRefreshToken);
     }
 }

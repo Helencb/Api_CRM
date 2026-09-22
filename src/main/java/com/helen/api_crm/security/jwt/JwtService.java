@@ -6,6 +6,8 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +20,10 @@ import java.util.function.Function;
 
 @Service
 public class JwtService {
+
+    private static final Logger log = LoggerFactory.getLogger(JwtService.class);
+
+    private static final String INSECURE_DEFAULT_SECRET = "MzQzZTUyYjcxOTg2NDU2ODk0NTYyMTMyNDU2ODk3NDU=";
 
     @Value("${api.security.token.secret}")
     private String secret;
@@ -37,6 +43,11 @@ public class JwtService {
             }
         } catch (IllegalArgumentException e) {
             throw new IllegalStateException("A chave JWT secreta não é uma string Base64 válida.", e);
+        }
+        if (INSECURE_DEFAULT_SECRET.equals(secret)) {
+            log.warn("SECURITY WARNING: api.security.token.secret is using the built-in default value committed " +
+                    "in application.properties. Anyone with access to the source code can forge valid JWTs. " +
+                    "Set the JWT_SECRET environment variable to a unique, random value before running outside local development.");
         }
     }
 

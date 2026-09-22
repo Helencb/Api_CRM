@@ -105,6 +105,7 @@ public class SaleServiceTest {
 
         when(clientRepository.findById(any())).thenReturn(Optional.of(new Client()));
         when(sellerRepository.findById(any())).thenReturn(Optional.of(new Seller()));
+        when(saleMapper.toEntity(any(), any())).thenReturn(new Sale());
         when(productRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> saleService.createSale(request));
@@ -155,6 +156,7 @@ public class SaleServiceTest {
 
         when(clientRepository.findById(any())).thenReturn(Optional.of(new Client()));
         when(sellerRepository.findById(any())).thenReturn(Optional.of(new Seller()));
+        when(saleMapper.toEntity(any(), any())).thenReturn(new Sale());
         when(productRepository.findById(10L)).thenReturn(Optional.of(product));
 
         assertThrows(BusinessException.class, () -> saleService.createSale(request));

@@ -2,7 +2,6 @@ package com.helen.api_crm.seller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.helen.api_crm.security.SecurityConfig;
-import com.helen.api_crm.security.jwt.JwtFilter;
 import com.helen.api_crm.security.jwt.JwtService;
 import com.helen.api_crm.security.service.AuthorizationService;
 import com.helen.api_crm.seller.controller.SellerController;
@@ -35,9 +34,6 @@ public class SellerControllerTest {
     private JwtService jwtService;
 
     @MockBean
-    private JwtFilter jwtFilter;
-
-    @MockBean
     private AuthorizationService authorizationService;
 
     @MockBean
@@ -64,7 +60,6 @@ public class SellerControllerTest {
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.name").value("HelenSeller"))
                 .andExpect(jsonPath("$.email").value("helen@crm.com"))
-                .andExpect(jsonPath("$.password").value("12345"))
                 .andExpect(jsonPath("$.phone").value("1234567890"));
     }
 

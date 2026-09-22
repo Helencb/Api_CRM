@@ -10,11 +10,11 @@ import com.helen.api_crm.manager.mapper.ManagerMapper;
 import com.helen.api_crm.manager.model.Manager;
 import com.helen.api_crm.manager.repository.ManagerRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -26,6 +26,15 @@ public class ManagerService {
     private final UserRepository userRepository;
 
     public ManagerResponseDTO createManager(ManagerRequestDTO dto) {
+        if (dto.name() == null || dto.name().isBlank()) {
+            throw new BusinessException("Name is required.");
+        }
+        if (dto.email() == null || dto.email().isBlank()) {
+            throw new BusinessException("Email is required.");
+        }
+        if (dto.password() == null || dto.password().isBlank()) {
+            throw new BusinessException("Password is required.");
+        }
         if (userRepository.existsByEmail(dto.email())) {
             throw new BusinessException("E-mail já cadastrado no sistema.");
         }
@@ -42,11 +51,9 @@ public class ManagerService {
         return managerMapper.toDTO(manager);
     }
 
-    public List<ManagerResponseDTO> findAll() {
-        return managerRepository.findAll()
-                .stream()
-                .map(managerMapper::toDTO)
-                .toList();
+    public Page<ManagerResponseDTO> findAll(Pageable pageable) {
+        return managerRepository.findAll(pageable)
+                .map(managerMapper::toDTO);
     }
 
     public ManagerResponseDTO findById(Long id) {

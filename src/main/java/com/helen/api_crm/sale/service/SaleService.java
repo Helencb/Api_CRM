@@ -93,6 +93,9 @@ public class SaleService {
         }
 
         BigDecimal discount = dto.getDiscount() != null ? dto.getDiscount() : BigDecimal.ZERO;
+        if (discount.compareTo(subtotal) > 0) {
+            throw new BusinessException("Discount cannot be greater than the sale subtotal");
+        }
         BigDecimal finalValue = subtotal.subtract(discount);
 
         sale.setSubtotal(subtotal);

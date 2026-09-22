@@ -38,7 +38,7 @@ public class ProductService {
 
     @Transactional
     public ProductResponseDTO updateProduct(Long id, ProductRequestDTO dto) {
-        Product product = productRepository.findById(id)
+        Product product = productRepository.findByIdWithLock(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found."));
         product.setName(dto.name());
         product.setDescription(dto.description());

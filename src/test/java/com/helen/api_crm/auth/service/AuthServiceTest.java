@@ -6,6 +6,7 @@ import com.helen.api_crm.auth.dto.LoginResponseDTO;
 import com.helen.api_crm.auth.model.User;
 import com.helen.api_crm.common.enums.Role;
 import com.helen.api_crm.exception.BusinessException;
+import com.helen.api_crm.refreshToken.service.RefreshTokenService;
 import com.helen.api_crm.security.jwt.JwtService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,10 +37,14 @@ public class AuthServiceTest {
     @Mock
     private JwtService jwtService;
 
+    @Mock
+    private RefreshTokenService refreshTokenService;
+
     // Teste de login bem-sucedido
     @Test
     void shouldLoginSucessfully() {
         User user = new User();
+        user.setId(1L);
         user.setEmail("admin@crm.com");
         user.setPassword("admin");
         user.setRole(Role.MANAGER);
@@ -49,7 +55,9 @@ public class AuthServiceTest {
         when(passwordEncoder.matches("admin", user.getPassword()))
                 .thenReturn(true);
 
-        when(jwtService.generateToken("admin@crm.com")).thenReturn("mocked-jwt-token");
+        when(jwtService.generateToken(any(Map.class), any())).thenReturn("mocked-jwt-token");
+
+        when(refreshTokenService.createRefreshToken("admin@crm.com")).thenReturn("mocked-refresh-token");
 
         LoginRequestDTO request = new LoginRequestDTO();
         request.setEmail("admin@crm.com");
@@ -85,9 +93,9 @@ public class AuthServiceTest {
         request.setEmail("unknown@crm.com");
         request.setPassword("any");
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> authService.login(request));
+        BusinessException exception = assertThrows(BusinessException.class, () -> authService.login(request));
 
-        assertEquals("Login not found", exception.getMessage());
+        assertEquals("Invalid email or password", exception.getMessage());
     }
 
 }

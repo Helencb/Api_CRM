@@ -53,6 +53,8 @@ public class LoadDataClass {
             managerRepository.save(admin);
 
             log.info("Usuário Admin criado com sucesso: {}", admin.getEmail());
+            log.warn("SECURITY WARNING: default admin account '{}' was created with a well-known password. " +
+                    "Change it immediately if this database is ever exposed outside local development.", admin.getEmail());
     } catch (Exception e) {
         log.error("Erro ao criar usuário Admin Inicial", e);
         }

@@ -2,6 +2,7 @@ package com.helen.api_crm.clients.controller;
 
 import com.helen.api_crm.clients.dto.ClientResponseDTO;
 import com.helen.api_crm.clients.service.ClientService;
+import com.helen.api_crm.security.jwt.JwtService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -9,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -29,6 +31,9 @@ public class ClientControllerTest {
 
     @MockBean
     private ClientService clientService;
+
+    @MockBean
+    private JwtService jwtService;
 
     @Test
     void shouldCreateClient() throws Exception {
@@ -56,7 +61,7 @@ public class ClientControllerTest {
                 new ClientResponseDTO(2L, "Adam", "adam@crm.com", "18999999999", 10L, "Seller Name")
         );
 
-        Page<ClientResponseDTO> clientPage = new PageImpl<>(clientsList);
+        Page<ClientResponseDTO> clientPage = new PageImpl<>(clientsList, PageRequest.of(0, 10), clientsList.size());
 
         when(clientService.getAllClients(any(Pageable.class)))
                 .thenReturn(clientPage);
@@ -64,10 +69,10 @@ public class ClientControllerTest {
         mockMvc.perform(get("/api/clients")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[0].name").value("Helen"))
-                .andExpect(jsonPath("$[1].id").value(2))
-                .andExpect(jsonPath("$[1].name").value("Adam"));
+                .andExpect(jsonPath("$.content[0].id").value(1))
+                .andExpect(jsonPath("$.content[0].name").value("Helen"))
+                .andExpect(jsonPath("$.content[1].id").value(2))
+                .andExpect(jsonPath("$.content[1].name").value("Adam"));
     }
 
     // Teste para buscar cliente por ID

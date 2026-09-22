@@ -18,6 +18,7 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
 
     Long countBySellerIdAndStatus(Long sellerId, SaleStatus status);
 
+    @EntityGraph(attributePaths = {"client"})
     List<Sale> findTop5BySellerIdOrderByCreatedAtDesc(Long sellerId);
 
     @Query("SELECT COUNT(s) FROM Sale s")

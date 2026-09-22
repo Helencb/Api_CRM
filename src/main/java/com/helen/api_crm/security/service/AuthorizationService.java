@@ -21,7 +21,7 @@ public class AuthorizationService {
     public boolean canAcessSale(Long saleId, Authentication authentication) {
         if (authentication.getAuthorities()
                 .stream()
-                .anyMatch(authority -> authority.getAuthority().equals("MANAGER"))) {
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_MANAGER"))) {
             return true;
         }
 
@@ -32,7 +32,7 @@ public class AuthorizationService {
 
     public boolean isSellerOwner(Long sellerId, Authentication authentication) {
         if(authentication.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals("MANAGER"))) {
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_MANAGER"))) {
             return true;
         }
         Seller seller = sellerRepository.findById(sellerId)

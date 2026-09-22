@@ -74,10 +74,17 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        if(corsOrigins.equals("*")) {
+        List<String> origins = Arrays.stream(corsOrigins.split(","))
+                .map(String::trim)
+                .filter(origin -> !origin.isEmpty())
+                .toList();
+
+        // setAllowedOrigins() rejects the literal "*" when allowCredentials(true) is set,
+        // so any origin list containing "*" must go through setAllowedOriginPatterns() instead.
+        if (origins.contains("*")) {
             configuration.setAllowedOriginPatterns(List.of("*"));
         } else {
-            configuration.setAllowedOrigins(Arrays.asList(corsOrigins.split(",")));
+            configuration.setAllowedOrigins(origins);
         }
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
