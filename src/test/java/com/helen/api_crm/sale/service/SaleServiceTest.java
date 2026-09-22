@@ -19,6 +19,7 @@ import com.helen.api_crm.sale.repository.SaleRepository;
 import com.helen.api_crm.security.model.SecurityUser;
 import com.helen.api_crm.seller.model.Seller;
 import com.helen.api_crm.seller.repository.SellerRepository;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,6 +59,9 @@ public class SaleServiceTest {
 
     @Mock
     private ProductRepository productRepository;
+
+    @Mock
+    private EntityManager entityManager;
 
     @Mock
     private SecurityContext securityContext;
@@ -142,6 +146,33 @@ public class SaleServiceTest {
 
         assertNotNull(result);
         verify(saleRepository).save(sale);
+    }
+
+    @Test
+    void shouldFailWhenDiscountExceedsSubtotal() {
+        SaleRequestDTO request = createSaleRequest();
+        request.setDiscount(new BigDecimal("999999.00")); // Muito maior que o subtotal (2 x preço do produto)
+        mockLoggedUser(1L, Role.MANAGER);
+
+        Client client = new Client();
+        client.setId(1L);
+        Seller seller = new Seller();
+        seller.setId(1L);
+
+        Product product = new Product();
+        product.setId(10L);
+        product.setName("Notebook");
+        product.setPrice(new BigDecimal("2000.00"));
+        product.setStockQuantity(10);
+        product.setActive(true);
+
+        when(clientRepository.findById(1L)).thenReturn(Optional.of(client));
+        when(sellerRepository.findById(1L)).thenReturn(Optional.of(seller));
+        when(saleMapper.toEntity(any(), any())).thenReturn(new Sale());
+        when(productRepository.findById(10L)).thenReturn(Optional.of(product));
+
+        assertThrows(BusinessException.class, () -> saleService.createSale(request));
+        verify(saleRepository, never()).save(any());
     }
 
     @Test
@@ -264,6 +295,50 @@ public class SaleServiceTest {
         assertEquals(SaleStatus.CANCELED, sale.getStatus());
         assertEquals("Customer regret", sale.getFailureReason());
         verify(productRepository).save(product);
+    }
+
+    @Test
+    void shouldCancelPendingSale_WithoutTouchingStock() {
+        Long saleId = 1L;
+        Sale sale = new Sale();
+        sale.setId(saleId);
+        sale.setStatus(SaleStatus.PENDING); // Estoque nunca foi baixado
+
+        Product product = new Product();
+        product.setId(10L);
+        product.setStockQuantity(8);
+
+        SaleItem item = new SaleItem();
+        item.setProduct(product);
+        item.setQuantity(2);
+
+        List<SaleItem> items = new ArrayList<>();
+        items.add(item);
+        sale.setItems(items);
+
+        when(saleRepository.findById(saleId)).thenReturn(Optional.of(sale));
+        when(saleRepository.save(sale)).thenReturn(sale);
+        when(saleMapper.toDTO(sale)).thenReturn(new SaleResponseDTO());
+
+        saleService.cancelSale(saleId, "Customer regret");
+
+        assertEquals(8, product.getStockQuantity()); // Não deve alterar o estoque
+        assertEquals(SaleStatus.CANCELED, sale.getStatus());
+        verify(productRepository, never()).findByIdWithLock(any());
+        verify(productRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldFailWhenCancellingAlreadyCanceledSale() {
+        Long saleId = 1L;
+        Sale sale = new Sale();
+        sale.setId(saleId);
+        sale.setStatus(SaleStatus.CANCELED);
+
+        when(saleRepository.findById(saleId)).thenReturn(Optional.of(sale));
+
+        assertThrows(BusinessException.class, () -> saleService.cancelSale(saleId, "Duplicate cancel"));
+        verify(saleRepository, never()).save(any());
     }
 
     // --- HELPER METHODS ---

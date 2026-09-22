@@ -1,5 +1,6 @@
 package com.helen.api_crm.security.service;
 
+import com.helen.api_crm.exception.ResourceNotFoundException;
 import com.helen.api_crm.sale.model.Sale;
 import com.helen.api_crm.sale.repository.SaleRepository;
 import com.helen.api_crm.seller.model.Seller;
@@ -26,7 +27,7 @@ public class AuthorizationService {
         }
 
         Sale sale = saleRepository.findById(saleId)
-                .orElseThrow(() -> new RuntimeException("Sale not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Sale not found"));
         return sale.getSeller().getEmail().equals(authentication.getName());
     }
 
@@ -36,7 +37,7 @@ public class AuthorizationService {
             return true;
         }
         Seller seller = sellerRepository.findById(sellerId)
-                .orElseThrow(() -> new RuntimeException("Seller not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Seller not found"));
 
         return seller.getEmail().equals(authentication.getName());
     }

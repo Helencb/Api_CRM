@@ -18,6 +18,7 @@ import com.helen.api_crm.sale.repository.SaleRepository;
 import com.helen.api_crm.security.model.SecurityUser;
 import com.helen.api_crm.seller.model.Seller;
 import com.helen.api_crm.seller.repository.SellerRepository;
+import jakarta.persistence.EntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -37,13 +38,30 @@ public class SaleService {
     private final SellerRepository sellerRepository;
     private final ProductRepository productRepository;
     private final SaleMapper saleMapper;
+    private final EntityManager entityManager;
 
-    public SaleService(SaleRepository saleRepository, ClientRepository clientRepository, SellerRepository sellerRepository, ProductRepository productRepository, SaleMapper saleMapper) {
+    public SaleService(SaleRepository saleRepository, ClientRepository clientRepository, SellerRepository sellerRepository, ProductRepository productRepository, SaleMapper saleMapper, EntityManager entityManager) {
         this.saleRepository = saleRepository;
         this.clientRepository = clientRepository;
         this.sellerRepository = sellerRepository;
         this.productRepository = productRepository;
         this.saleMapper = saleMapper;
+        this.entityManager = entityManager;
+    }
+
+    /**
+     * SaleItem.product is eagerly fetched, so by the time we reach the lock below, Hibernate's
+     * persistence context may already hold a stale, unlocked copy of this Product (loaded via
+     * sale.getItems()). The SELECT ... FOR UPDATE correctly locks and re-reads the row, but
+     * Hibernate silently discards the fresh column values in favor of the already-managed
+     * instance. An explicit refresh forces the in-memory entity back in sync with what the lock
+     * just read, which is what makes the stock check below actually safe under concurrency.
+     */
+    private Product lockAndRefreshProduct(Long productId) {
+        Product product = productRepository.findByIdWithLock(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+        entityManager.refresh(product);
+        return product;
     }
 
     @Transactional
@@ -133,8 +151,7 @@ public class SaleService {
         sale.getItems().sort(Comparator.comparing(i -> i.getProduct().getId()));
 
         for (SaleItem item : sale.getItems()) {
-            Product product = productRepository.findByIdWithLock(item.getProduct().getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Product not found during completion"));
+            Product product = lockAndRefreshProduct(item.getProduct().getId());
 
             if (product.getStockQuantity() < item.getQuantity()) {
                 throw new BusinessException("Insufficient stock to complete sale for product: " + product.getName());
@@ -158,8 +175,7 @@ public class SaleService {
 
         if (sale.getStatus() == SaleStatus.COMPLETED) {
             for (SaleItem item : sale.getItems()) {
-                Product product = productRepository.findByIdWithLock(item.getProduct().getId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Product not found during cancellation"));
+                Product product = lockAndRefreshProduct(item.getProduct().getId());
 
                 product.setStockQuantity(product.getStockQuantity() + item.getQuantity());
                 productRepository.save(product);

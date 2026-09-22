@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -13,6 +14,18 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
 
     private static final Logger log =  LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    // Must be handled explicitly: @PreAuthorize denials are thrown from inside the controller
+    // invocation, so the catch-all Exception handler below would otherwise turn every 403 into a 500.
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiError> handleAccessDenied(AccessDeniedException ex) {
+        ApiError error = new ApiError(
+                HttpStatus.FORBIDDEN.value(),
+                HttpStatus.FORBIDDEN.name(),
+                "You do not have permission to perform this action"
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiError> handleNotFound(ResourceNotFoundException ex) {

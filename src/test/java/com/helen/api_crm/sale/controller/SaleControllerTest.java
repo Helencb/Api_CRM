@@ -8,6 +8,7 @@ import com.helen.api_crm.sale.dto.SaleResponseDTO;
 import com.helen.api_crm.sale.model.PaymentMethod;
 import com.helen.api_crm.sale.model.SaleStatus;
 import com.helen.api_crm.sale.service.SaleService;
+import com.helen.api_crm.security.SecurityConfig;
 import com.helen.api_crm.security.jwt.JwtFilter;
 import com.helen.api_crm.security.jwt.JwtService;
 import com.helen.api_crm.security.service.AuthorizationService;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -40,6 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 
 @WebMvcTest(SaleController.class)
+@Import(SecurityConfig.class)
 public class SaleControllerTest {
 
     @Autowired
@@ -57,7 +60,7 @@ public class SaleControllerTest {
     @MockBean
     private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
-    @MockBean
+    @MockBean(name = "authorizationService")
     private AuthorizationService authorizationService;
 
     @Autowired
@@ -136,6 +139,28 @@ public class SaleControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("CANCELED"))
                 .andExpect(jsonPath("$.failureReason").value("Cliente desistiu"));
+    }
+
+    // Teste de restrição de acesso: SELLER não pode finalizar venda
+    @Test
+    @WithMockUser(username = "seller@test.com", roles = {"SELLER"})
+    void sellerShouldNotBeAbleToCompleteSale() throws Exception {
+        mockMvc.perform(put("/api/sales/1/complete")
+                        .with(csrf()))
+                .andExpect(status().isForbidden());
+    }
+
+    // Teste de restrição de acesso: SELLER não pode cancelar venda
+    @Test
+    @WithMockUser(username = "seller@test.com", roles = {"SELLER"})
+    void sellerShouldNotBeAbleToCancelSale() throws Exception {
+        SaleCancelRequestDTO request = createSaleCancelRequest();
+
+        mockMvc.perform(put("/api/sales/{id}/cancel", 1L)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
     }
 
     // Teste de vendas por ID
